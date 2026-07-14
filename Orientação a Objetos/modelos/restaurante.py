@@ -2,36 +2,41 @@ class Restaurante:
     restaurantes = []
 
     def __init__(self, nome, categoria):
-        self.categoria = categoria
-        self.nome = nome
-        self.ativo = True
+        self._nome = nome.title()
+        self._categoria = categoria.upper()
+        self._ativo = False
         Restaurante.restaurantes.append(self)
 
     def __str__(self):
-        return f"Restaurante: {self.nome}, Categoria: {self.categoria}, Ativo: {self.ativo}"
+        return f"{self._nome} | {self._categoria}"
 
+    @classmethod
     def listar_restaurantes(cls):
+        print(
+            f"{'Nome do restaurante'.ljust(25)} | {'Categoria'.ljust(25)} | {'Status'}"
+        )
         for restaurante in cls.restaurantes:
-            print(restaurante.__str__())
+            print(
+                f"{restaurante._nome.ljust(25)} | {restaurante._categoria.ljust(25)} | {restaurante.ativo}"
+            )
+
+    @property
+    def ativo(self):
+        return "⌧" if self._ativo else "☐"
+
+    def alternar_estado(self):
+        self._ativo = not self._ativo
 
 
-restaurante_praca = Restaurante("Praça", "Italiana")
-print(restaurante_praca)  # Saída: Restaurante: Praça, Categoria: Italiana, Ativo: True
-restaurante_praca.nome = "Bistrô"
-print(restaurante_praca)  # Saída: Restaurante: Bistrô, Categoria: Italiana, Ativo: True
+restaurante_praca = Restaurante("praça", "Gourmet")
+restaurante_praca.alternar_estado()
+restaurante_pizza = Restaurante("pizza express", "Italiana")
 
-restaurante_pizza = Restaurante("Pizza Place", "Fast Food")
-print(
-    restaurante_pizza
-)  # Saída: Restaurante: Pizza Place, Categoria: Fast Food, Ativo: True
-if restaurante_pizza.categoria == "Fast Food":
-    print("A categoria é Fast Food.")
-else:
-    print("A categoria não é Fast Food.")
+Restaurante.listar_restaurantes()
 
 # Imprimir os atributos dos objetos
-print(vars(restaurante_praca))
-print(vars(restaurante_pizza))
+# print(vars(restaurante_praca))
+# print(vars(restaurante_pizza))
 
 # Imprimir os métodos e atributos disponíveis para o objeto
-print(dir(restaurante_praca))
+# print(dir(restaurante_praca))
