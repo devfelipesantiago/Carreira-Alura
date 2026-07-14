@@ -1,11 +1,18 @@
 class Restaurante:
+    restaurantes = []
+
     def __init__(self, nome, categoria):
         self.categoria = categoria
         self.nome = nome
         self.ativo = True
+        Restaurante.restaurantes.append(self)
 
     def __str__(self):
         return f"Restaurante: {self.nome}, Categoria: {self.categoria}, Ativo: {self.ativo}"
+
+    def listar_restaurantes(cls):
+        for restaurante in cls.restaurantes:
+            print(restaurante.__str__())
 
 
 restaurante_praca = Restaurante("Praça", "Italiana")
