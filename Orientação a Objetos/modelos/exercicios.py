@@ -37,8 +37,9 @@ restaurante_exemplo = Restaurante(
 )
 
 
-# 3) Modifique a classe Restaurante adicionando um construtor que aceita nome e categoria como parâmetros
-#    e inicia ativo como False por padrão. Crie uma instância utilizando o construtor.
+# 3) Modifique a classe Restaurante adicionando um construtor que aceita nome
+# e categoria como parâmetros e inicia ativo como False por padrão.
+# Crie uma instância utilizando o construtor.
 
 
 class Restaurante:
@@ -54,8 +55,9 @@ class Restaurante:
 novo_restaurante = Restaurante(nome="Santa Marmita", categoria="Fast Food")
 
 
-# 4) Adicione um método especial __str__ à classe Restaurante para que, ao imprimir uma instância,
-#    seja exibida uma mensagem formatada com o nome e a categoria. Exiba essa mensagem para uma instância de restaurante.
+# 4) Adicione um método especial __str__ à classe Restaurante para que, ao
+# imprimir uma instância, seja exibida uma mensagem formatada com o nome e a categoria.
+# Exiba essa mensagem para uma instância de restaurante.
 
 
 class Restaurante:
@@ -76,7 +78,8 @@ print(restaurante_formatado)
 
 
 # 5) Crie uma classe chamada Cliente e pense em 4 atributos.
-#    Em seguida, instancie 3 objetos desta classe e atribua valores aos seus atributos através de um método construtor.
+# Em seguida, instancie 3 objetos desta classe e atribua valores aos seus
+# atributos através de um método construtor.
 
 
 class Cliente:
@@ -87,7 +90,8 @@ class Cliente:
         self.telefone = telefone
 
 
-# Instanciando três objetos da classe Cliente e atribuindo valores aos seus atributos através do construtor
+# Instanciando três objetos da classe Cliente e atribuindo valores aos seus
+# atributos através do construtor.
 cliente1 = Cliente(
     nome="Alice", idade=25, email="alice@gmail.com", telefone="123-456-7890"
 )
@@ -99,18 +103,23 @@ cliente3 = Cliente(
 # ---------------------------------------------------------------------
 
 
-# 1) Crie uma classe chamada `ContaBancaria` com um construtor que aceita os parâmetros titular e saldo. Inicie o atributo ativo como False por padrão.
+# 1) Crie uma classe chamada `ContaBancaria` com um construtor que aceita os
+# parâmetros titular e saldo. Inicie o atributo ativo como False por padrão.
 class ContaBancaria:
     def __init__(self, titular, saldo):
         self.titular = titular
         self.saldo = saldo
         self._ativo = False  # Atributo protegido
 
-    # 2) Na classe ContaBancaria, adicione um método especial `__str__` que retorna uma mensagem formatada com o titular e o saldo da conta. Crie duas instâncias da classe e imprima essas instâncias.
+    # 2) Na classe ContaBancaria, adicione um método especial `__str__` que
+    # retorna uma mensagem formatada com o titular e o saldo da conta.
+    # Crie duas instâncias da classe e imprima essas instâncias.
     def __str__(self):
         return f"Conta de {self.titular} - Saldo: R${self.saldo}"
 
-    # 3) Adicione um método de classe chamado `ativar_conta` à classe `ContaBancaria` que define o atributo ativo como `True`. Crie uma instância da classe, chame o método de classe e imprima o valor de ativo.
+    # 3) Adicione um método de classe chamado `ativar_conta` à classe
+    # `ContaBancaria` que define o atributo ativo como `True`.
+    # Crie uma instância da classe, chame o método de classe e imprima o valor de ativo.
     def ativar_conta(self):
         self._ativo = True
 
@@ -128,7 +137,8 @@ conta3.ativar_conta()
 print(f"Depois de ativar: Conta ativa? {conta3._ativo}")
 
 
-# 4) Refatore a classe `ContaBancaria` para utilizar a abordagem "pythonica" na criação de atributos. Utilize propriedades, se necessário.
+# 4) Refatore a classe `ContaBancaria` para utilizar a abordagem "pythonica"
+# na criação de atributos. Utilize propriedades, se necessário.
 class ContaBancariaPythonica:
     def __init__(self, titular, saldo):
         self._titular = titular
