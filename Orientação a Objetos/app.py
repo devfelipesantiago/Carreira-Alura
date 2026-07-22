@@ -5,9 +5,9 @@ restaurante_japones = Restaurante("Japan food", "Japonesa")
 restaurante_mexicano = Restaurante("mexican food", "Mexicana")
 
 restaurante_mexicano.alternar_estado()
-restaurante_praca.adicionar_avaliacao(4, "João")
-restaurante_japones.adicionar_avaliacao(5, "Maria")
-restaurante_praca.adicionar_avaliacao(3, "Carlos")
+restaurante_praca.receber_avaliacao("João", 4)
+restaurante_japones.receber_avaliacao("Maria", 5)
+restaurante_praca.receber_avaliacao("Carlos", 3)
 
 print(restaurante_praca.media_avaliacoes)
 print(restaurante_japones.media_avaliacoes)
