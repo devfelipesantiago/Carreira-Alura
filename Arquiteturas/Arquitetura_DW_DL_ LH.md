@@ -201,3 +201,39 @@ Apresentamos três enfoques para garantir a integridade das datas:
 
 ![CargasFactuais](/Arquiteturas/cargaFato3.png)
 
+## Data Lake
+
+O Data Lake (DL) é um repositório centralizado que armazena grandes volumes de dados brutos, de diversas fontes e em seus formatos originais. Pense nele como um "grande lago" onde todos os tipos de dados (estruturados, semiestruturados e não estruturados) são despejados sem a necessidade de uma estrutura pré-definida.
+
+Ele serve para:
+
+- **Armazenar dados brutos**: Preserva os dados exatamente como foram gerados, permitindo que sejam usados para análises futuras, mesmo que a finalidade inicial não seja clara.
+- **Flexibilidade**: Permite trabalhar com diferentes tipos de dados e formatos (JSON, logs, CSV, etc.) sem a rigidez de um Data Warehouse tradicional.
+- **Ingestão rápida**: Como não exige transformações prévias, a ingestão de dados é muito mais ágil.
+- **Base para análises avançadas**: Serve como fonte para Data Warehouses, Data Marts e outras ferramentas analíticas, além de ser ideal para machine learning e inteligência artificial, que muitas vezes precisam de dados em seu estado bruto.
+- **Reprocessamento**: Se uma regra de negócio mudar ou uma nova análise for necessária, os dados brutos estão disponíveis para serem reprocessados sem a necessidade de voltar às fontes originais.
+
+Em resumo, o Data Lake é uma peça fundamental nas arquiteturas de dados modernas, oferecendo flexibilidade e capacidade de armazenamento para lidar com o volume e a variedade de dados atuais.
+
+![Data Lake](/Arquiteturas/schema_DL.png)
+
+### Arquitetura do Data Lake
+
+#### Organização em camadas
+
+- **Bronze** - Camada de entrada
+- **Prata** - Camada de qualidade
+- **Ouro** - Camada de negócio
+
+**Camada RAW ou Bronze**: Esta é a primeira camada. Nela, os dados são armazenados exatamente como chegam das fontes originais, sem nenhuma transformação. É como se fosse o "estado bruto" dos dados.
+
+**Camada Staged ou Prata**: Nesta segunda camada, os dados passam por uma transformação inicial. Isso pode incluir limpeza, padronização de formatos ou conversão para formatos mais eficientes para processamento, como Parquet ou ORC.
+
+**Camada Curated ou Ouro**: A terceira e última camada é onde os dados já estão organizados e preparados para o consumo analítico. Aqui, os dados estão prontos para serem usados em dashboards, projetos de ciência de dados ou para alimentar o Data Warehouse.
+
+![Data Lake](/Arquiteturas/camadas_dl.png)
+
+- Quem usa o DL?
+
+![datalake](/Arquiteturas/datalake.png)
+
