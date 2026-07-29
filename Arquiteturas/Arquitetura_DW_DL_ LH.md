@@ -264,3 +264,48 @@ Formatos de arquivo muito utilizados em Data Lakes:
 
 ## Data Lakehouse
 
+O Lakehouse propõe que os dados continuem armazenados no Data Lake de forma bruta, mas sejam organizados e acessados como se fossem tabelas analíticas. Isso permite realizar consultas analíticas diretamente sobre os dados no próprio Data Lake, eliminando a necessidade de mover continuamente os dados para um Data Warehouse.
+
+As vantagens dessa abordagem incluem manter o armazenamento escalável e de baixo custo do Data Lake, enquanto incorpora a organização de dados em estruturas que podem ser consultadas como tabelas. Isso possibilita executar consultas SQL, aplicar governança, controlar versões e estruturar datasets para análise, transformando o Data Lake em uma plataforma analítica mais poderosa.
+
+> O Lakehouse não necessariamente substitui o Data Lake ou o Data Warehouse, mas surge como uma evolução para reduzir movimentações desnecessárias de dados, simplificar a arquitetura e aproveitar melhor as ferramentas modernas de processamento distribuído.
+
+### Arquitetura do Lakehouse
+
+Imagine que você tem uma biblioteca enorme, cheia de livros de todos os tipos, organizados de forma bem flexível. Essa é o seu Data Lake, onde os dados (livros) estão guardados em arquivos, de forma escalável e com baixo custo.
+
+Agora, pense que você quer fazer uma pesquisa específica nessa biblioteca, como encontrar todos os livros de um determinado autor ou sobre um assunto específico. Se os livros estivessem em formatos comuns, como folhas soltas, seria difícil e demorado.
+
+É aí que entra a arquitetura Lakehouse. Ela é como se você adicionasse algumas ferramentas e um sistema de organização inteligente à sua biblioteca:
+
+- **Formatos de arquivos otimizados**: É como se os seus livros estivessem em formatos especiais (como Parquet ou Avro), que permitem que você encontre rapidamente as informações que precisa, sem ter que ler o livro inteiro. Eles são projetados para leituras eficientes.
+- **Catálogo de metadados**: Pense nisso como um índice super detalhado da sua biblioteca. Ele não guarda os livros em si, mas sabe exatamente onde cada livro está, qual é o seu formato, quais são os capítulos (esquema das colunas) e outras informações importantes. Ferramentas como Hive Metastore ou AWS Glue Catalog fazem esse papel.
+- **Motores de processamento analítico**: São como pesquisadores muito rápidos e eficientes que sabem usar o índice (catálogo de metadados) e os formatos especiais dos livros para encontrar e analisar as informações que você pediu. Eles podem executar consultas complexas diretamente nos seus livros (dados do Data Lake) sem precisar movê-los para outro lugar. Exemplos são Apache Spark, Trino, Presto ou DukeDB.
+
+Ao combinar esses três elementos, o Lakehouse transforma sua "biblioteca flexível" (Data Lake) em um ambiente onde você pode fazer pesquisas e análises complexas de forma eficiente, como se estivesse usando uma "biblioteca super organizada e especializada" (Data Warehouse), mas mantendo a flexibilidade e o baixo custo da sua biblioteca original.
+
+## Papéis do Data Lake, Data Warehouse e Lakehouse
+
+Vamos a um exemplo prático para ilustrar os papéis:
+
+Imagine uma grande empresa de e-commerce que vende produtos online.
+
+> **Data Lake (Camada Ouro)**
+
+- **Exemplo**: A empresa coleta todos os dados de cliques dos usuários no site, histórico de navegação, produtos visualizados, dados de sensores de estoque e logs de servidores. Esses dados brutos são armazenados no Data Lake. Após um processo inicial de limpeza e padronização (por exemplo, remover dados duplicados, padronizar formatos de data e extrair informações básicas de endereço), esses dados são movidos para a camada ouro do Data Lake.
+
+- **Papel**: Nesta camada, os cientistas de dados podem explorar esses dados para entender padrões de comportamento do cliente, construir modelos de recomendação de produtos ou identificar anomalias no tráfego do site. Os dados estão organizados por domínio (ex: dados de clientes, dados de produtos), mas ainda não estão em um modelo analítico rígido.
+
+> **Data Warehouse**
+
+- **Exemplo**: Para relatórios financeiros mensais, a empresa precisa saber o faturamento exato por categoria de produto, a margem de lucro por região e o desempenho de vendas por vendedor. Esses dados são extraídos do Data Lake (ou de outras fontes), transformados e carregados no Data Warehouse em um modelo de fatos e dimensões. Por exemplo, teríamos uma tabela de fatos de vendas e tabelas de dimensões para tempo, produto, cliente e região.
+
+- **Papel**: O Data Warehouse garante que esses relatórios sejam consistentes, confiáveis e que as métricas de negócio (como "faturamento" ou "margem de lucro") sejam calculadas da mesma forma sempre. É o ambiente para os "indicadores oficiais" da empresa e dashboards executivos.
+
+> **Lakehouse**
+
+- **Exemplo**: A equipe de marketing quer analisar rapidamente o impacto de uma nova campanha promocional sobre o volume de vendas de um produto específico, cruzando dados de cliques no site (que estão no Data Lake) com dados de vendas (que poderiam estar no Data Warehouse ou também no Data Lake). Eles precisam de uma consulta SQL rápida sobre grandes volumes de dados que ainda estão em arquivos no Data Lake, sem ter que esperar que esses dados sejam totalmente modelados e carregados em um Data Warehouse tradicional.
+
+- **Papel**: O Lakehouse permite que a equipe de marketing execute consultas SQL complexas diretamente sobre os arquivos do Data Lake, como se fossem tabelas, aproveitando a escalabilidade do Data Lake e a capacidade analítica do SQL. Isso evita a duplicação de dados e agiliza a análise de grandes volumes de informações que não precisam de um modelo multidimensional tão rígido quanto o do Data Warehouse.
+
+> **Em resumo**, o Data Lake (camada ouro) é para dados preparados para exploração, o Data Warehouse é para relatórios e métricas de negócio estruturadas, e o Lakehouse é para análises SQL diretas sobre grandes volumes de dados no Data Lake, reduzindo a movimentação e duplicação.
