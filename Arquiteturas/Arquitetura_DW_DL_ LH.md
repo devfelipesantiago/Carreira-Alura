@@ -237,3 +237,30 @@ Em resumo, o Data Lake é uma peça fundamental nas arquiteturas de dados modern
 
 ![datalake](/Arquiteturas/datalake.png)
 
+### Fluxos de Dados com Data Lake
+
+A principal mudança que o Data Lake traz para a arquitetura de dados é a alteração no fluxo de transporte e transformação dos dados. Em arquiteturas clássicas, o processo era ETL (Extrair, Transformar e Carregar), onde as transformações ocorriam antes do armazenamento analítico. Com o Data Lake, a lógica muda para EL (Extrair e Carregar), onde os dados são primeiro carregados no Data Lake em seu formato original e só depois passam por processos de transformação.
+
+Essa abordagem traz vantagens como a preservação dos dados brutos, permitindo reprocessamento e maior flexibilidade. Além disso, há uma separação mais clara entre a ingestão e a transformação dos dados, tornando a arquitetura mais modular e escalável. O Data Lake também se torna um ponto central para diferentes consumidores, como cientistas de dados e engenheiros de Machine Learning, além de alimentar o Data Warehouse.
+
+### Data Lake no Minishop
+
+Formatos de arquivo muito utilizados em Data Lakes:
+
+- **Parquet**: Um formato de código aberto, colunar binário, otimizado para desempenho analítico, que ocupa menos espaço em disco e permite leituras rápidas.
+- **Avro**: Um formato de serialização de dados binários, eficiente para armazenar e trocar grandes volumes de dados, que guarda os dados e o esquema (em JSON) no mesmo arquivo ou separadamente.
+
+> **Camada Bronze**
+
+![Data Lake no Minishop](/Arquiteturas/DL_Minishop_bronze.png)
+
+> **Camada Prata**
+
+![Data Lake no Minishop](/Arquiteturas/DL_Minishop_prata.png)
+
+> **Camada Ouro**
+
+![Data Lake no Minishop](/Arquiteturas/DL_Minishop_ouro.png)
+
+## Data Lakehouse
+
