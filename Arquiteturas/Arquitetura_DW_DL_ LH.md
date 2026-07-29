@@ -309,3 +309,14 @@ Imagine uma grande empresa de e-commerce que vende produtos online.
 - **Papel**: O Lakehouse permite que a equipe de marketing execute consultas SQL complexas diretamente sobre os arquivos do Data Lake, como se fossem tabelas, aproveitando a escalabilidade do Data Lake e a capacidade analítica do SQL. Isso evita a duplicação de dados e agiliza a análise de grandes volumes de informações que não precisam de um modelo multidimensional tão rígido quanto o do Data Warehouse.
 
 > **Em resumo**, o Data Lake (camada ouro) é para dados preparados para exploração, o Data Warehouse é para relatórios e métricas de negócio estruturadas, e o Lakehouse é para análises SQL diretas sobre grandes volumes de dados no Data Lake, reduzindo a movimentação e duplicação.
+
+## Arquitetira final do Minishop
+
+> **Data Lakehouse no Minishop**
+
+![Data Lakehouse no Minishop](/Arquiteturas/LW_Arquitetura.png)
+
+> **Data Warehouse no Minishop**
+
+![Data Warehouse no Minishop](/Arquiteturas/ETL_DW_Arquitetura.png)
+
