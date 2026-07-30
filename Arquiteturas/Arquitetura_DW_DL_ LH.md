@@ -85,7 +85,7 @@ Modelo Multidimensional (Data Warehouse): Foca em organizar os dados de forma qu
 
 #### Modelo Snowflake (Floco de Neve)
 
-![Modelo Snowflake](/Arquiteturas/snowflake.png)
+![Modelo Snowflake](/Arquiteturas/Snowflake.png)
 Neste modelo, as tabelas de dimensão são normalizadas. Os níveis hierárquicos são distribuídos em múltiplas tabelas que se relacionam entre si. Isso reduz a redundância de dados e facilita a manutenção estrutural das dimensões. No entanto, aumenta a complexidade das consultas e o número de joins necessários.
 
 `Tipos de hierarquias:`
