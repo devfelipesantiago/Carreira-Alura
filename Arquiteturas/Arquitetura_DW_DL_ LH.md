@@ -130,7 +130,7 @@ No modelo dimensional, não usamos as chaves naturais (os identificadores origin
 
 A chave substituta aparece tanto na dimensão (como chave primária do nível folha) quanto na tabela de fatos (como chave estrangeira), conectando cada evento da tabela de fatos ao membro correspondente da dimensão.
 
-![DW](/Arquiteturas/dw.png)
+![DW](/Arquiteturas/DW.png)
 
 ## ETL (Extract, Transform, Load)
 
