@@ -5,15 +5,15 @@ class Dados:
     def __init__(self, dados):
         self.dados = dados
         self.colunas = self.__get_colunas()
-        self.qtde_linhas = self.size_dados()
+        self.qtde_linhas = self.__size_dados()
 
     def __leitura_json(path):
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, 'r') as file:
             return json.load(file)
 
     def __leitura_csv(path):
         dados_csv = []
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, 'r') as file:
             spamreader = csv.DictReader(file, delimiter=',')
             for row in spamreader:
                 dados_csv.append(row)
@@ -37,8 +37,8 @@ class Dados:
         self.dados = [{key_mapping.get(old_key, old_key): value for old_key, value in old_dict.items()} for old_dict in self.dados]
         self.colunas = self.__get_colunas()
 
-    def size_dados(self):
-        return len(self.dados)
+    def __size_dados(self):
+        self.qtde_linhas = len(self.dados)
 
     @staticmethod
     def join_dados(dadosA, dadosB):
