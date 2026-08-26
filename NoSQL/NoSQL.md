@@ -348,3 +348,110 @@ db.events.deleteMany(
   { event_type: "APP_STARTED" }
 );
 ```
+
+## Cassandra
+
+### Fundamentos e Arquitetura Interna
+
+O Cassandra é um banco de dados NoSQL projetado para lidar com grandes volumes de dados distribuídos, focando na escalabilidade horizontal e no acesso rápido. Sua arquitetura difere dos bancos de dados relacionais, pois não prioriza relações complexas ou normalização.
+
+- Um conceito chave é o modelo `Wide-Column`, onde as tabelas não possuem uma estrutura rígida. Cada linha pode ter um conjunto distinto de colunas, permitindo flexibilidade e eficiência para dados que evoluem. As colunas podem ser adicionadas dinamicamente.
+
+A organização e distribuição dos dados são garantidas por duas chaves principais:
+
+- **Partition Key (Chave de Partição)**: É a responsável por determinar em qual nó do cluster o dado será armazenado. Um algoritmo de hash é aplicado a essa chave para definir a partição. A escolha da Partition Key é crucial para uma distribuição equilibrada, evitando sobrecarga em nós específicos e garantindo o desempenho.
+
+- **Clustering Key (Chave de Agrupamento)**: Define a ordem dos dados dentro de uma mesma partição. Ela permite que as consultas sejam rápidas, pois os dados já estão organizados em uma sequência predefinida. Por exemplo, se a Partition Key for o ID do usuário, a Clustering Key pode ser um timestamp para ordenar os eventos desse usuário ao longo do tempo.
+
+**Limitações e Boas Práticas**:
+
+> *O Cassandra não suporta joins, como nos bancos de dados relacionais. Para contornar isso, é comum desnormalizar os dados ou duplicá-los em tabelas diferentes. Ele também não é adequado para varreduras completas de tabelas. As consultas devem sempre se basear na Partition Key e, idealmente, na Clustering Key para filtros e ordenação*.
+
+> *A normalização tradicional, que é fundamental em bancos de dados relacionais para a integridade, não se aplica bem ao Cassandra. Aqui, a desnormalização e a redundância de dados são práticas recomendadas para otimizar a leitura e reduzir a latência em sistemas distribuídos*.
+
+Compreender esses conceitos de Wide-Column, Partition Key e Clustering Key é essencial para trabalhar eficientemente com o Cassandra e aproveitar ao máximo sua capacidade.
+
+### Criando Keyspaces e Tabelas no Cassandra
+
+```sql
+/* - docker exec -it cassandra-minishop cqlsh */
+
+- DESCRIBE KEYSPACES;
+
+- CREATE KEYSPACE minishop_plataform
+WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': 1
+};
+
+- DESCRIBE KEYSPACES;
+
+- USE  minishop_plataform;
+
+- CREATE TABLE simple_metrics (
+  metric_name text,
+  metric_time timestamp,
+  metric_value int,
+  PRIMARY KEY (metric_name, metric_time)
+);
+
+- INSERT INTO simple_metrics (metric_name, metric_time, metric_value) VALUES ('page_views', toTimestamp(now()), 120);
+
+- INSERT INTO simple_metrics (metric_name, metric_time, metric_value) VALUES ('page_views', toTimestamp(now()), 135);
+
+- INSERT INTO simple_metrics (metric_name, metric_time, metric_value) VALUES ('orders_created', toTimestamp(now()), 5);
+
+- SELECT * FROM simple_metrics WHERE metric_name = 'page_views';
+
+```
+
+### Modelagem de Séries Temporais no Cassandra
+
+```sql
+- CREATE TABLE IF NOT EXISTS metric_points_by_day (
+  metric text,
+  day date,
+  ts timestamp,
+  value double,
+  tags map<text, text>,
+  PRIMARY KEY ((metric, day), ts)
+) WITH CLUSTERING ORDER BY (ts DESC);
+
+- INSERT INTO metric_points_by_day 
+(metric, day, ts, value, tags)
+VALUES ('counter', '2026-02-02', 
+toTimestamp(now()), 1, {'name':'logins'});
+
+- INSERT INTO metric_points_by_day (metric, day, ts, value, tags)
+VALUES ('latency_ms', '2026-02-02', toTimestamp(now()), 150.44, {'op':'view_catalog'});
+
+- INSERT INTO metric_points_by_day (metric, day, ts, value, tags)
+VALUES ('counter', '2026-02-02', toTimestamp(now()), 1, {'name':'catalog_views'});
+
+- SELECT ts, metric, value, tags
+FROM metric_points_by_day
+WHERE metric = 'counter'
+  AND day = '2026-02-02'
+LIMIT 10;
+
+- CREATE TABLE IF NOT EXISTS counters_snapshot (
+  name text PRIMARY KEY,
+  value bigint,
+  updated_at timestamp
+);
+`
+- INSERT INTO counters_snapshot (name, value, updated_at)
+VALUES ('logins', 1, toTimestamp(now()));
+
+- INSERT INTO counters_snapshot (name, value, updated_at)
+VALUES ('catalog_views', 1, toTimestamp(now()));
+
+- SELECT * FROM counters_snapshot;
+```
+
+### A Primary Key (chave primária) é um conceito fundamental e se divide em duas partes:
+
+1. **Chave de Partição (Partition Key)**: Define como os dados serão distribuídos entre os nós do cluster. Todos os dados com a mesma chave de partição são agrupados na mesma partição física. Ela determina onde o dado será armazenado.
+
+2. **Chave de Agrupamento (Clustering Key)**: Define a ordem em que os dados são organizados dentro de uma partição. Ela não afeta a distribuição, mas sim a organização interna dos registros.
+Ao inserir dados, é crucial fornecer os valores para todos os campos da chave primária, pois eles são essenciais para o Cassandra determinar onde e como os dados serão gravados.
