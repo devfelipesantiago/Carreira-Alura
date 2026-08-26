@@ -177,8 +177,6 @@ O Redis é excelente para implementar contadores, garantindo que as operações 
 
 ## MongoDB
 
-### Conceitos Fundamentais Documentos, Collections e JSON
-
 Os bancos de dados orientados a documentos, como o MongoDB, *se destacam por armazenar dados em documentos*, oferecendo uma estrutura muito mais flexível em comparação com as tabelas rígidas dos bancos de dados relacionais.
 
 A unidade básica de armazenamento é o documento, que geralmente utiliza o formato `JSON` ou `BSON`. Essa estrutura permite que os campos variem dentro dos documentos de uma mesma coleção, e é possível incluir novos documentos ou arrays sem a necessidade de um esquema global. Isso significa que um documento pode conter informações detalhadas e variadas, como dados de usuário, preferências, histórico de compras e múltiplos endereços, tudo em um único lugar.
@@ -188,6 +186,8 @@ A unidade básica de armazenamento é o documento, que geralmente utiliza o form
 > Os documentos são organizados em collections (coleções), que são agrupamentos lógicos de documentos. Uma collection é semelhante a uma tabela, mas não exige uma estrutura fixa para todos os documentos que a compõem. Essa característica facilita a adição ou eliminação de campos sem a necessidade de migrações complexas.
 
 Embora a flexibilidade seja um grande benefício, ela também exige responsabilidade na organização e consistência dos dados. O modelo orientado a documentos é ideal para cenários que demandam flexibilidade e escalabilidade, como o registro de eventos, logs de aplicação, históricos de transações e catálogos de e-commerce, onde os atributos dos itens podem variar bastante.
+
+---
 
 ### Comandos
 
@@ -349,6 +349,8 @@ db.events.deleteMany(
 );
 ```
 
+---
+
 ## Cassandra
 
 ### Fundamentos e Arquitetura Interna
@@ -370,6 +372,8 @@ A organização e distribuição dos dados são garantidas por duas chaves princ
 > *A normalização tradicional, que é fundamental em bancos de dados relacionais para a integridade, não se aplica bem ao Cassandra. Aqui, a desnormalização e a redundância de dados são práticas recomendadas para otimizar a leitura e reduzir a latência em sistemas distribuídos*.
 
 Compreender esses conceitos de Wide-Column, Partition Key e Clustering Key é essencial para trabalhar eficientemente com o Cassandra e aproveitar ao máximo sua capacidade.
+
+---
 
 ### Criando Keyspaces e Tabelas no Cassandra
 
@@ -449,9 +453,13 @@ VALUES ('catalog_views', 1, toTimestamp(now()));
 - SELECT * FROM counters_snapshot;
 ```
 
+---
+
 ### A Primary Key (chave primária) é um conceito fundamental e se divide em duas partes:
 
 1. **Chave de Partição (Partition Key)**: Define como os dados serão distribuídos entre os nós do cluster. Todos os dados com a mesma chave de partição são agrupados na mesma partição física. Ela determina onde o dado será armazenado.
 
 2. **Chave de Agrupamento (Clustering Key)**: Define a ordem em que os dados são organizados dentro de uma partição. Ela não afeta a distribuição, mas sim a organização interna dos registros.
 Ao inserir dados, é crucial fornecer os valores para todos os campos da chave primária, pois eles são essenciais para o Cassandra determinar onde e como os dados serão gravados.
+
+---
