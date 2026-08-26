@@ -147,8 +147,6 @@
 
 ## Introdução ao processo de ETL
 
-### Introdução ao Processo de ETL
-
 - Imagine que você construiu uma biblioteca muito bem organizada, com prateleiras e seções para cada tipo de livro. Essa é a estrutura do seu Data Warehouse. No entanto, uma biblioteca sem livros não serve para nada, certo? É aí que entra o processo de ETL. Ele é como a equipe que busca os livros em diversas livrarias (fontes de dados), os organiza e cataloga (transformação) e, finalmente, os coloca nas prateleiras certas da sua biblioteca (carga). Sem o ETL, seu Data Warehouse seria apenas um belo projeto vazio.
 
 ### A Função do ETL
