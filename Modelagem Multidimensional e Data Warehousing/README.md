@@ -1,4 +1,4 @@
-# MySQL para Modelagem Multidimensional e Data Warehousing
+# Modelagem Multidimensional e Data Warehousing
 
 ## Porque o Data Warehouse é diferente do banco transacional
 
@@ -161,9 +161,13 @@
 
 - **Carregar (Load)**: Finalmente, os dados transformados são inseridos no Data Warehouse. É como organizar os livros já catalogados nas prateleiras corretas da sua biblioteca. Nesta etapa, também garantimos que o histórico dos dados seja mantido, que as versões sejam controladas e que a integridade seja preservada para que as análises futuras sejam confiáveis.
 
+---
+
 ### Diferenciando o Data Warehouse do Banco Operacional
 
 > É um erro comum pensar que um Data Warehouse é apenas uma cópia do banco de dados que usamos no dia a dia. Não é! Eles têm propósitos diferentes. O banco operacional (OLTP) é otimizado para registrar transações rápidas e frequentes. Já o Data Warehouse (DW) é otimizado para análises complexas e consultas que buscam padrões e tendências ao longo do tempo. Os dados no DW são reorganizados e consolidados para esse fim, não apenas copiados.
+
+___
 
 ### As Camadas do ETL
 
@@ -177,11 +181,16 @@ Para gerenciar todo esse processo de forma organizada, o ETL geralmente utiliza 
 
 > Uma frase que resume bem essa arquitetura é: "Staging recebe dados, ADS organiza os dados e Data Warehouse analisa."
 
-#### O Uso de Surrogate Keys
+___
+
+### O Uso de Surrogate Keys
 
 No Data Warehouse, não usamos os códigos originais dos sistemas operacionais para identificar os itens das dimensões (como um cliente ou um produto). Em vez disso, criamos um novo identificador numérico sequencial para cada item, chamado Surrogate Key. Por exemplo, se um cliente é identificado pelo CNPJ no sistema operacional, no Data Warehouse, o CNPJ será apenas um atributo do cliente, e o cliente terá uma Surrogate Key única (como 1, 2, 3...). Isso otimiza o desempenho e a flexibilidade do Data Warehouse. O processo de lookup é o mecanismo que converte o código original na Surrogate Key correspondente durante o ETL.
 
-#### Tipos de Carga no Data Warehouse
+___
+
+
+### Tipos de Carga no Data Warehouse
 
 Existem duas formas principais de carregar dados no Data Warehouse:
 
@@ -189,11 +198,14 @@ Existem duas formas principais de carregar dados no Data Warehouse:
 
 - **Carga Incremental**: Depois da carga inicial, esta é a forma de manter o Data Warehouse atualizado. Ela carrega apenas os dados novos ou modificados desde a última carga, garantindo que o ambiente esteja sempre com as informações mais recentes.
 
-#### SCD1 (Slowly Changing Dimensions Tipo 1) na prática
+___
 
-##### Etapas da implementação do SCD Tipo 1 na prática (com foco nos comandos MySQL):
 
-###### Criação de um Índice Único na Tabela de Dimensão:
+### SCD1 (Slowly Changing Dimensions Tipo 1) na prática
+
+Etapas da implementação do SCD Tipo 1 na prática (com foco nos comandos MySQL):
+
+Criação de um Índice Único na Tabela de Dimensão:
 
 - **Objetivo**: Garantir que cada registro na dimensão tenha um código natural exclusivo. Isso é fundamental para que o MySQL saiba identificar se um registro já existe ou se é um novo.
 
@@ -253,7 +265,7 @@ UPDATE suprema_bank_db.tipos_conta SET nome = 'Conta de Investimento - Poupança
 
 > **O que o comando faz**: Altera o nome de um registro existente na tabela fonte, que deverá ser atualizado na dimensão (se a lógica IF detectar a mudança).
 
-#### Gerenciando Mudanças em Dimensões: O Conceito de Slowly Changing Dimensions (SCD)
+### Gerenciando Mudanças em Dimensões: O Conceito de Slowly Changing Dimensions (SCD)
 
 Ao construir um Data Warehouse, um dos maiores desafios é lidar com a evolução dos dados ao longo do tempo. As informações sobre clientes, produtos ou locais não são estáticas; elas mudam. Como podemos garantir que nossos relatórios históricos reflitam a realidade de cada período, mesmo quando os atributos de uma dimensão se alteram? É aqui que entra o conceito de Slowly Changing Dimensions (Dimensões que Mudam Lentamente), ou SCD.
 
@@ -305,7 +317,7 @@ Quando trabalhamos com dados em um Data Warehouse, é fundamental que as informa
 
 #### Preparando a Tabela da Dimensão
 
-> Para que uma dimensão possa registrar o histórico de mudanças, precisamos adicionar algumas colunas especiais. Imagine que cada "versão" de um cliente tem um período de validade. Para isso, criamos dois novos campos:
+Para que uma dimensão possa registrar o histórico de mudanças, precisamos adicionar algumas colunas especiais. Imagine que cada "versão" de um cliente tem um período de validade. Para isso, criamos dois novos campos:
 
 ```sql
 valid_from: 
@@ -314,9 +326,11 @@ valid_to:
 -- Esta coluna registra a data em que essa versão do registro do cliente deixou de ser válida.
 ```
 
-> Por padrão, quando um registro é criado, ele é válido desde a menor data possível (por exemplo, '1000-01-01') até a maior data possível (por exemplo, '9999-12-31'). Isso indica que essa é a versão "atual" do registro.
+*Por padrão, quando um registro é criado, ele é válido desde a menor data possível (por exemplo, '1000-01-01') até a maior data possível (por exemplo, '9999-12-31'). Isso indica que essa é a versão "atual" do registro.*
 
-#### Otimizando Consultas com Índices
+___
+
+### Otimizando Consultas com Índices
 
 Em uma dimensão Tipo 2, um mesmo cliente (identificado por seu código natural) pode ter várias linhas na tabela, cada uma representando uma versão diferente de seus dados ao longo do tempo. Para encontrar rapidamente a versão correta de um cliente, especialmente a mais atual, precisamos de um mecanismo de busca eficiente.
 
@@ -334,7 +348,9 @@ Para gerenciar a complexidade de inserir novos dados e atualizar os existentes, 
   - Uma nova linha é inserida para o mesmo cliente, contendo os novos valores dos atributos. Esta nova linha terá seu valid_from definido para a data de "hoje" e seu valid_to para a maior data possível, indicando que é a nova versão "atual".
 - **Atualizando Atributos que Não Preservam Histórico**: Para atributos que não exigem histórico (como uma correção no nome do cliente), a atualização é mais simples. Apenas a versão "atual" do cliente na dimensão é modificada diretamente, sem a criação de uma nova linha.
 
-#### Executando e Testando as Atualizações
+___
+
+### Executando e Testando as Atualizações
 
 O procedimento armazenado é executado, e é comum que, para certas operações de atualização, seja necessário desativar temporariamente um recurso de segurança do cliente SQL (SQL_SAFE_UPDATES). Isso permite que as atualizações ocorram conforme a lógica do procedimento, que pode não usar chaves primárias como filtro em todas as suas etapas.
 
@@ -549,6 +565,7 @@ FROM suprema_bank_dw.dim_cliente
 WHERE cod_cliente = '00001'  -- troque por um existente
 ORDER BY valid_from;
 ```
+___
 
 ## Otimização de performance no Data Warehouse
 
@@ -569,8 +586,9 @@ Os principais pontos que vimos foram:
 - **Particionamento de Tabelas**: Para tabelas que crescem muito, acumulando milhões ou bilhões de linhas, o particionamento é uma técnica eficaz. Ele divide fisicamente uma tabela grande em partes menores, mas mantém a aparência de uma única tabela para quem consulta. O critério mais comum para particionar é o tempo (por exemplo, por ano ou mês), pois a maioria das análises envolve recortes temporais. Quando uma consulta filtra por esse critério, o sistema acessa apenas as partições relevantes, ignorando o restante dos dados e acelerando significativamente o processo. No entanto, o particionamento só traz benefícios se a coluna de partição for consistentemente usada nos filtros das consultas; caso contrário, o sistema terá que ler todas as partes, e a complexidade adicional não trará ganhos.
 
 - **Práticas Essenciais de Manutenção**: Finalmente, a manutenção de um Data Warehouse é um trabalho contínuo. É essencial manter as estatísticas do banco de dados sempre atualizadas, revisar os índices periodicamente (pois as necessidades de consulta mudam), monitorar as consultas mais lentas, evitar trazer colunas desnecessárias (SELECT *) e mover cálculos complexos para o processo de carga de dados sempre que possível. Documentar todas as decisões de performance é crucial para a sustentabilidade e evolução do sistema.
+___
 
-## **Governança de Dados no Data Warehouse**
+## Governança de Dados no Data Warehouse
 
 Imagine um grande armazém de informações, o nosso "data warehouse". Não basta apenas construir esse armazém com a melhor tecnologia; é crucial garantir que tudo o que está lá dentro seja confiável e compreensível para todos. É aí que entra a governança de dados.
 
