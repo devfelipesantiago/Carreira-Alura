@@ -29,11 +29,12 @@
 ## Tipos de Dados Essenciais
 
 ```sql
-Numéricos:
+-- Numéricos:
 int: Números inteiros.
 bigint: Números inteiros grandes.
 decimal, float, double: Números com casas decimais. Evitar float para dados financeiros, preferindo double pela precisão.
-Texto:
+
+-- Texto:
 varchar: Texto de comprimento variável.
 char: Texto de comprimento fixo.
 text: Para textos longos.
@@ -42,8 +43,9 @@ date: Apenas data.
 datetime: Data e hora.
 timestamp: Data e hora com fuso horário.
 year: Apenas ano.
-Outros Tipos:
-JSON: Suporte nativo para dados JSON (MySQL 8+).
+
+-- Outros Tipos:
+JSON: Suporte nativo para dados JSON (MySQL 8+)
 enum, set: Tipos especiais para categorias predefinidas.
 ```
 
@@ -79,37 +81,47 @@ FROM tabela: Indica a tabela de onde os dados serão extraídos.
 Filtragem de Dados com WHERE
 A cláusula WHERE é crucial para refinar os resultados, aplicando condições específicas.
 
-Comparação de Igualdade (=): Filtra registros onde uma coluna corresponde a um valor exato. Lembre-se de usar aspas simples para textos e datas, e números diretamente.
+-- Comparação de Igualdade (=): Filtra registros onde uma coluna corresponde a um valor exato. Lembre-se de usar aspas simples para textos e datas, e números diretamente.
 Ex: WHERE status = 'ATIVO'
 Ex: WHERE id_tipo_conta = 1
-Comparação de Diferença (!=): Seleciona registros que não correspondem a um valor.
+
+-- Comparação de Diferença (!=): Seleciona registros que não correspondem a um valor.
 Ex: WHERE status != 'ATIVO'
-Comparação de Maior/Menor (>, <, >=, <=): Útil para filtrar datas ou valores numéricos.
+
+-- Comparação de Maior/Menor (>, <, >=, <=): Útil para filtrar datas ou valores numéricos.
 Ex: WHERE data_nascimento > '1990-01-01'
-Busca por Padrão (LIKE): Essencial para buscas textuais parciais. O caractere % atua como um curinga para qualquer sequência de caracteres.
+
+-- Busca por Padrão (LIKE): Essencial para buscas textuais parciais. O caractere % atua como um curinga para qualquer sequência de caracteres.
 Ex: WHERE numero_conta LIKE '10%' (começa com '10')
-Intervalo (BETWEEN ... AND ...): Filtra valores dentro de um determinado intervalo (inclusivo).
+
+-- Intervalo (BETWEEN ... AND ...): Filtra valores dentro de um determinado intervalo (inclusivo).
 Ex: WHERE saldo_inicial BETWEEN 500 AND 2000
-Múltiplos Valores (IN): Seleciona registros onde uma coluna corresponde a qualquer um dos valores listados.
+-- Múltiplos Valores (IN): Seleciona registros onde uma coluna corresponde a qualquer um dos valores listados.
 Ex: WHERE id_status IN (1, 3)
-Ordenação de Resultados com ORDER BY
+
+-- Ordenação de Resultados com ORDER BY
 A cláusula ORDER BY organiza a saída da consulta de acordo com uma ou mais colunas.
 
-ASC (Ascendente): Ordena do menor para o maior (padrão se não especificado). Para textos, segue a ordem alfabética.
+-- ASC (Ascendente): Ordena do menor para o maior (padrão se não especificado). Para textos, segue a ordem alfabética.
 Ex: ORDER BY nome ASC
-DESC (Descendente): Ordena do maior para o menor.
+
+-- DESC (Descendente): Ordena do maior para o menor.
 Ex: ORDER BY saldo_inicial DESC
+
 Importante: A ordem dos resultados não é garantida sem o uso explícito de ORDER BY.
 Limitação e Paginação com LIMIT e OFFSET
 Para controlar o número de registros retornados, especialmente em grandes conjuntos de dados.
 
-LIMIT número: Retorna apenas o número especificado de linhas.
+-- LIMIT número: Retorna apenas o número especificado de linhas.
 Ex: LIMIT 5
-LIMIT quantidade OFFSET início: Pula um número de linhas (OFFSET) e então retorna a quantidade de linhas.
+
+-- LIMIT quantidade OFFSET início: Pula um número de linhas (OFFSET) e então retorna a quantidade de linhas.
 Ex: LIMIT 5 OFFSET 5 (pula 5, pega os próximos 5)
-Sintaxe Simplificada (LIMIT início, quantidade): No MySQL, pode-se usar uma sintaxe mais concisa.
+
+-- Sintaxe Simplificada (LIMIT início, quantidade): No MySQL, pode-se usar uma sintaxe mais concisa.
 Ex: LIMIT 5, 5 (equivalente a OFFSET 5 LIMIT 5)
-Combinação de Cláusulas
+
+-- Combinação de Cláusulas
 É possível e comum combinar todas essas cláusulas para criar consultas poderosas e precisas. A ordem das cláusulas em uma consulta SELECT é geralmente: SELECT, FROM, WHERE, ORDER BY, LIMIT.
 
 Ex: SELECT nome, data_cadastro FROM clientes WHERE status = 'ATIVO' ORDER BY data_cadastro DESC LIMIT 10;
