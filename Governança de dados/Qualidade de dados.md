@@ -154,4 +154,66 @@ As seis dimensões são:
 - **Objetivo**: Criar restrições para aferir a qualidade de dados e gerar métricas.
 - **Benefício**: Verificar métricas de qualidade ao longo do tempo para entender melhorias ou pioras.
 
+### Três objetos principais: Profiles, Analyzers e Checks.
+
+- **Analyzers**: Interagem com os dados fazendo perguntas específicas (tamanho do dataset, completude de colunas, comparações).
+
+   * **Tipos de Análises (Analyzers)**
+   1. **Do dataset todo**: Métricas para o conjunto de dados completo.
+   2. **De colunas específicas**: Métricas para uma única coluna.
+   3. **De comparação**: Métricas que comparam duas colunas.
+
+- **Padrão de Uso do PyDeequ**
+
+   - Definir objeto de resultado: `resultado_analise = (...)`
+   - Especificar dados: `.onData(df)`
+   - Adicionar análises: `.addAnalyzer(...)`
+   - Rodar a análise: `.run()`
+
+- Criando o Primeiro Analyzer (Exemplo de Código)
+```js
+resultado_analise = (
+    AnalysisRunner(spark)
+    .onData(df)
+    .addAnalyzer(Size())
+    .addAnalyzer(Completeness('NOME_SALA'))
+    .addAnalyzer(Completeness('PUBLICO'))
+    .addAnalyzer(Mean('PUBLICO'))
+    .addAnalyzer(CountDistinct('MUNICIPIO_SALA_COMPLEXO'))
+    .addAnalyzer(Compliance('PUBLICO', 'PUBLICO > 10'))
+    .run()
+)
+```
+- `Size()`: Tamanho do dataset.
+- `Completeness('NOME_SALA')` / `Completeness('PUBLICO')`: Completude de colunas específicas.
+- `Mean('PUBLICO')`: Média de uma coluna numérica.
+- `CountDistinct('MUNICIPIO_SALA_COMPLEXO')`: Contagem de valores distintos.
+- `Compliance('PUBLICO', 'PUBLICO > 10')`: Verifica se uma regra (SQL-like) é atendida.
+
+**Acessando os Resultados**
+
+`resultado_analise` retorna um `JavaObject id=o122` (não legível diretamente).
+
+**Converter para dataframe para visualização**:
+```js
+resultado_df = AnalyzerContext.successMetricsAsDataFrame(spark, resultado_analise)
+resultado_df.show()
+```
+#### Interpretação dos Resultados (Exemplo de Saída)
+
+| entity | instance | name | value |
+|---------|----------|--------------|---------------------|
+| Column | PUBLICO | Completeness | 1.0 |
+| Column | PUBLICO | Mean | 44.088970640254686 |
+| Dataset | * | Size | 141350.0 |
+| Column | PUBLICO | Compliance | 0.6735267067562788 |
+| Column | NOME_SALA| Completeness | 1.0 |
+
+- **entity**: O que está sendo avaliado (Coluna, Dataset).
+- **instance**: Coluna específica (se aplicável).
+- **name**: Nome da análise (Completeness, Mean, Size, Compliance).
+- **value**: O resultado da métrica.
+
+#### Conclusão
+Não foram identificados problemas de qualidade nos dados analisados inicialmente.
 
