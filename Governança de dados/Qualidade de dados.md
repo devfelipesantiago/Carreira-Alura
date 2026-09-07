@@ -156,7 +156,8 @@ As seis dimensões são:
 
 ### Três objetos principais: Profiles, Analyzers e Checks.
 
-- **Analyzers**: Interagem com os dados fazendo perguntas específicas (tamanho do dataset, completude de colunas, comparações).
+#### Analyzers
+Interagem com os dados fazendo perguntas específicas (tamanho do dataset, completude de colunas, comparações).
 
    * **Tipos de Análises (Analyzers)**
    1. **Do dataset todo**: Métricas para o conjunto de dados completo.
@@ -217,3 +218,301 @@ resultado_df.show()
 #### Conclusão
 Não foram identificados problemas de qualidade nos dados analisados inicialmente.
 
+--------
+
+#### Profiles
+
+**O que são Profiles?** Profiles são perfis estatísticos dos dados, um conjunto de informações que ajuda a entender rapidamente o comportamento de um conjunto de dados, especialmente útil ao trabalhar com dados desconhecidos.
+
+Criando um Profile Para criar um profile, é necessário importar as funções da biblioteca Pydeequ e, em seguida, usar o ColumnProfilerRunner para gerar perfis por coluna.
+
+```py
+# importação
+from pydeequ.profiles import *
+
+# Criação do profile para colunas expecíficas
+profile = ColumnProfilerRunner(spark) \
+    .onData(df.select('TITULO_ORIGINAL', 'PUBLICO')) \
+    .run()
+```
+Este código cria um objeto `ColumnProfilerRunner` que roda o perfil para as colunas `TITULO_ORIGINAL` e `PUBLICO` do DataFrame df, utilizando a sessão spark.
+
+**Acessando o Perfil das Colunas**: Os resultados dos perfis são armazenados em um dicionário. Para visualizá-los, pode-se iterar sobre os itens do dicionário.
+
+```py
+for col, profile in profile.profiles.items():
+    print(profile)
+```
+
+**Exemplo de Resultados:**
+
+- **TITULO_ORIGINAL (StandardProfiles):**
+
+   - `completeness`: 1.0 (100%)
+   - `approximateNumDistinctValues`: 150
+   - `dataType`: "String"
+   - `typeCounts`: Indica que todos os registros são do tipo "String".
+
+- **PUBLICO (NumericProfiles):**
+
+   - `completeness`: 1.0 (100%)
+   - `approximateNumDistinctValues`: 582
+   - `dataType`: "Integral"
+   - `mean`: 44.08 (média de público)
+   - `maximum`: 906.0 (público máximo)
+   - `minimum`: 1.0 (público mínimo)
+   - `sum`: 6231976.0
+   - `stdDev`: 61.57 (desvio padrão)
+
+**Importância dos Profiles**: Os profiles permitem compreender o comportamento estatístico dos dados, como a completude, tipos de dados, valores distintos, média, máximo, mínimo e desvio padrão. Essa compreensão é fundamental para criar testes e regras de qualidade de dados eficazes, auxiliando na decisão sobre a usabilidade do conjunto de dados.
+
+------------
+
+#### Checks ou testes de qualidades
+
+- **Objetivo:** Avaliar a qualidade dos dados impondo condições específicas.
+- **Conceito:** Checks são condições que, se satisfeitas, indicam que os dados possuem qualidade para um propósito específico.
+
+**Importação de Funções**
+
+Para usar os checks, é necessário importar as funções da Pydeequ:
+```py
+from pydeequ.checks import *
+from pydeequ.verification import *
+
+# Criação de um Check Padrão
+# Um check padrão é um construtor genérico onde as condições serão adicionadas.
+teste = Check(spark, CheckLevel.Warning, 'Meu primeiro teste')
+```
+
+**Parâmetros:**
+
+- `spark`: Variável de ambiente Spark.
+- `CheckLevel`: Nível do teste (ex: `Warning` para aviso, `Error` para erro).
+- `Nome do teste` (ex: 'Meu primeiro teste').
+
+**Criação e Execução de um Teste com Checks**
+Utiliza-se VerificationSuite para agrupar e executar os checks sobre os dados.
+```py
+teste1 = (
+   VerificationSuite(spark)
+   .onData(df)
+   .addCheck(
+      teste.isUnique('PUBLICO', hint='Falha quando há valores iguais')
+      .isNonNegative('PUBLICO', hint='Falha quando há valores negativos')
+   ).run()
+)
+```
+
+**Métodos importantes:**
+
+- `.onData(df)`: Define o DataFrame (df) sobre o qual o teste será executado.
+- `.addCheck(teste.<condição>)`: Adiciona as condições de teste ao check genérico.
+- `isUnique('coluna', hint='mensagem')`: Verifica se os valores na coluna são únicos.
+- `isNonNegative('coluna', hint='mensagem')`: Verifica se os valores na coluna não são negativos.
+- `.run()`: Executa o teste.
+
+**Análise dos Resultados de um Teste**
+
+Os resultados são armazenados e podem ser visualizados como um DataFrame.
+
+```py
+resultado_teste1 = VerificationResult.checkResultsAsDataFrame(spark, teste1)
+resultado_teste1.show()
+```
+
+**Colunas do resultado:**
+
+- **check**: Nome do teste genérico.
+- **check_level**: Nível do teste (Warning/Error).
+- **check_status**: Status geral do check (Success/Failure/Warning).
+- **constraint**: A condição específica aplicada.
+- **constraint_status**: Status da condição (Success/Failure).
+- **constraint_message**: Mensagem detalhada em caso de falha, incluindo o hint.
+
+| check             | check_level | check_status | constraint          | constraint_status | constraint_message  |
+|-------------------|-------------|--------------|---------------------|-------------------|---------------------|
+| Meu primeiro teste| Warning     | Warning      | UniquenessConstraint| Failure           | Value: 6.29642730...|
+| Meu primeiro teste| Warning     | Warning      | ComplianceConstraint| Success           |                     |
+
+**Para ver o primeiro resultado detalhado:**
+
+`resultado_teste1.first()`
+
+**Exemplo de retorno**: 
+- `Row(check='Meu primeiro teste'`,
+`check_level='Warning'`,
+`check_status='Warning'`,
+`constraint='UniquenessConstraint(Uniqueness(List(PUBLICO),None))'`, `constraint_status='Failure'`,
+`constraint_message='Value`: 6.29642730810046E-4 does not meet the constraint requirement! Falha quando há valores iguais'
+
+-------------
+
+> Aplicação do Framework DAMA: Teste de Acurácia
+
+Os checks podem ser usados para implementar as dimensões de qualidade de dados do framework DAMA.
+
+>**Acurácia**: O quanto o dado reflete a realidade.
+
+**Exemplo de função para verificar acurácia (tamanho do dataset)**:
+```py
+def verifica_acuracia(spark, df):
+   tamanho = 150000
+   teste_generico = Check(spark, CheckLevel.Error, 'Acuracia')
+   teste = (VerificationSuite(spark)
+      .onData(df)
+         .addCheck(
+            teste_generico.hasSize(lambda size: size >= 0.5 * tamanho and size <= 2.5 * tamanho)
+        )
+      .run()
+   )
+   return teste.checkResults[0]
+
+resultado_acuracia = verifica_acuracia(spark, df)
+```
+
+**Condição hasSize**: Verifica se a quantidade de registros (linhas) do dataset está dentro de um intervalo definido.
+
+**Exemplo de retorno de sucesso:**
+```py
+{'check_status': 'Success',
+ 'check_level': 'Error',
+ 'constraint_status': 'Success',
+ 'check': 'Verificando Acurária',
+ 'constraint_message': '',
+ 'constraint': 'SizeConstraint(Size(None))'}
+```
+
+#### Validade
+> **Conceito**: Avalia se os rótulos de uma coluna estão de acordo com o esperado.
+
+**Exemplo**: Verificar se as siglas de estados em uma coluna `UF_SALA_COMPLEXO` correspondem a uma lista predefinida.
+
+**Sintaxe para lista de siglas**:
+```py
+siglas_estados = [
+   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS","MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+]
+
+# Função de verificação (verifica_validade):
+
+def verifica_validade(spark, df, teste_generico):
+    siglas_estados = [...] # Lista de siglas aqui
+    verificacao = (
+        VerificationSuite(spark)
+        .onData(df)
+        .addCheck(
+            teste_generico.isContainedIn('UF_SALA_COMPLEXO', siglas_estados)
+        ).run()
+    )
+    return verificacao.checkResults[0]
+```
+
+> **Aplicação**: `resultado_validade = verifica_validade(spark, df, cria_check(spark))`
+
+**Resultado esperado (sucesso)**: `'check_status': 'Success'`
+
+#### Completude
+
+> **Conceito**: Avalia a quantidade percentual de registros não nulos em uma coluna.
+
+**Exemplo**: Garantir que todas as colunas de um DataFrame tenham pelo menos 90% de completude.
+
+> **Função de verificação (verifica_completude)**:
+```py
+def verifica_completude(spark, df, teste_generico):
+    verificacao = (
+        VerificationSuite(spark)
+        .onData(df)
+        .addCheck(
+            teste_generico.haveCompleteness(df.columns, lambda comp : comp >= 0.9)
+        ).run()
+    )
+    return verificacao.checkResults[0]
+```
+
+> **Aplicação**: `resultado_completude = verifica_completude(spark, df, cria_check(spark))`
+
+**Resultado esperado (falha, exemplo)**: 
+`'check_status': 'Error', 'constraint_message': 'Value: 0.6618747789175805 does not meet the constraint requirement!'`(indicando que uma coluna tem 66% de completude, abaixo do 90% exigido).
+
+#### Unicidade
+> **Conceito**: Verifica se uma coluna (ou dataset) possui valores repetidos. Útil para IDs ou CPFs.
+
+**Exemplo**: Verificar a unicidade de uma coluna como PUBLICO (mesmo sabendo que terá valores repetidos para fins de demonstração).
+
+> **Função de verificação (verifica_unicidade):**
+```py
+def verifica_unicidade(spark, df, teste_generico, coluna):
+    verificacao = (
+        VerificationSuite(spark)
+        .onData(df)
+        .addCheck(
+            teste_generico.isUnique(coluna)
+        ).run()
+    )
+    return verificacao.checkResults[0]
+```
+**Aplicação**: `verifica_unicidade(spark, df, cria_check(spark), 'PUBLICO')`
+
+**Resultado esperado (falha, exemplo)**: `'check_status': 'Error', 'constraint_message': 'Value: 6.29642730810046E-4 does not meet the constraint requirement!'` (indicando que a coluna não é totalmente única).
+
+Função Auxiliar `cria_check()`
+
+**Propósito:** Agilizar a criação de objetos Check para os testes.
+
+**Sintaxe**:
+```py
+def cria_check(spark):
+    return Check(spark, CheckLevel.Error, 'Teste Generico')
+```
+
+### Sugestão de regras de qualidade
+
+Para começar a usar as sugestões de regras, é preciso importar a parte específica da biblioteca PyDeequ:
+```py
+from pydeequ.suggestions import *
+```
+
+> Criando as Sugestões
+
+As sugestões são geradas utilizando o `ConstraintSuggestionRunner`. É necessário informar o DataFrame (df) e adicionar as regras desejadas, como a DEFAULT() para sugestões básicas:
+```py
+sugestoes = (
+    ConstraintSuggestionRunner(spark)
+    .onData(df)
+    .addConstraintRule(DEFAULT())
+    .run()
+)
+```
+O `ConstraintSuggestionRunner()` é o construtor responsável por sugerir as restrições mais adequadas. onData() define os dados a serem trabalhados e `addConstraintRule(DEFAULT())` adiciona o tipo de regra padrão. O `.run()` executa a geração das sugestões.
+
+> Acessando e Interpretando as Sugestões
+
+As sugestões podem ser acessadas e impressas em um loop, mostrando o nome da coluna e a descrição da sugestão:
+```py
+for sugestao in sugestoes['constraint_suggestions']:
+    print(f"Sugestão : {sugestao['column_name']} : {sugestao['description']}")
+
+# Exemplos de Sugestões:
+
+Sugestão : REGISTRO_COMPLEXO : 'REGISTRO_COMPLEXO' has no negative values
+Sugestão : PAIS_OBRA : 'PAIS_OBRA' is not null
+Sugestão : PAIS_OBRA : 'PAIS_OBRA' has value range 'ESTADOS UNIDOS', 'BRASIL', 'INGLATERRA' for at least 94.0% of values
+```
+> Gerando o Código da Sugestão
+
+Além da descrição, a PyDeequ também pode fornecer o código correspondente à sugestão, o que facilita a implementação dos testes:
+```py
+for sugestao in sugestoes['constraint_suggestions']:
+    print(f"Sugestão : {sugestao['column_name']} : {sugestao['description']}")
+    print(f"teste sugerido: {sugestao['code_for_constraint']}")
+```
+**Exemplos de Código Sugerido**:
+
+- Para `'REGISTRO_COMPLEXO'` has no negative values: teste sugerido:
+`.isNonNegative("REGISTRO_COMPLEXO")`.
+
+- Para `'PAIS_OBRA'` has value range 'ESTADOS UNIDOS', 'BRASIL', 'INGLATERRA' for at least 94.0% of values: teste sugerido: `.isContainedIn("PAIS_OBRA", ["ESTADOS UNIDOS", "BRASIL", "INGLATERRA"], lambda x: x >= 0.94, "It should be above 0.94!")`
+
+É crucial realizar uma interpretação humana das sugestões para ajustar os valores e as condições conforme a necessidade real do negócio, pois a biblioteca oferece um ponto de partida, mas a decisão final sobre a regra ideal é do usuário.
