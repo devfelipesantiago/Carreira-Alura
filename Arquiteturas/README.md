@@ -33,8 +33,8 @@ As principais características do OLAP incluem:
 
 ### Diagrama de Chen
 
-![OLTP](/Arquiteturas/Schema_OLTP.png)
-> Esquema de banco de dados OLTP relacional normalizado para evitar redundância e garantir a integridade dos dados.
+![OLTP](/Arquiteturas/image/Schema_OLTP.png)
+Esquema de banco de dados OLTP relacional normalizado para evitar redundância e garantir a integridade dos dados.
 
 ## Data Warehouse (DW)
 
@@ -47,7 +47,7 @@ O DW resolve o problema de executar consultas complexas diretamente no banco de 
 - **Não volátil**: Preserva o histórico dos dados, sem alterar registros antigos, garantindo estabilidade analítica.
 - **Variável no tempo**: Permite analisar a evolução do negócio ao longo do tempo, transformando dados operacionais em memória corporativa.
 
-![DW](/Arquiteturas/DW.png)
+![DW](/Arquiteturas/image/DW.png)
 
 ## Fundamentos da Modelagem Multidimensional
 
@@ -57,38 +57,47 @@ Agora, no modelo multidimensional (para o Data Warehouse), a ideia é diferente.
 
 O que queremos analisar (Indicadores)? São os números que você quer medir. No nosso cubo mágico, seriam os valores que preenchem o interior do cubo. Por exemplo:
 
-Total de vendas
-Quantidade de produtos vendidos
-Lucro
-Custo
-Como queremos analisar (Dimensões)? São as "faces" ou os "eixos" do seu cubo mágico. Cada face representa uma perspectiva pela qual você pode olhar seus indicadores. Por exemplo:
+**Total de vendas**
 
-Dimensão Tempo: Você pode olhar as vendas por ano, mês, dia, semana.
-Dimensão Produto: Você pode olhar as vendas por tipo de produto, categoria, marca.
-Dimensão Cliente: Você pode olhar as vendas por tipo de cliente, região do cliente, idade do cliente.
-Dimensão Localização: Você pode olhar as vendas por loja, cidade, estado.
+- Quantidade de produtos vendidos
+- Lucro
+- Custo
+- Como queremos analisar (Dimensões)? São as "faces" ou os "eixos" do seu cubo mágico. Cada face representa uma perspectiva pela qual você pode olhar seus indicadores.
+
+**Por exemplo**:
+
+- **Dimensão Tempo**: Você pode olhar as vendas por ano, mês, dia, semana.
+
+- **Dimensão Produto**: Você pode olhar as vendas por tipo de produto, categoria, marca.
+- **Dimensão Cliente**: Você pode olhar as vendas por tipo de cliente, região do cliente, idade do cliente.
+- **Dimensão Localização**: Você pode olhar as vendas por loja, cidade, estado.
+
 A modelagem multidimensional é como montar esse cubo mágico: você define quais são os números importantes (indicadores) e quais são as lentes ou perspectivas pelas quais você quer analisar esses números (dimensões).
 
 Quando você quer responder à pergunta "quantos produtos X foram vendidos na região Sul no mês de abril?", no seu cubo mágico, você simplesmente "gira" as faces para as dimensões "Produto X", "Região Sul" e "Mês de Abril", e o valor (o indicador de quantidade de vendas) já está lá, pronto para ser lido.
 
-Em resumo:
+**Em resumo**:
 
-Modelo Relacional (OLTP): Foca em registrar cada detalhe das transações. É como um livro-caixa detalhado.
-Modelo Multidimensional (Data Warehouse): Foca em organizar os dados de forma que as análises e as perguntas de negócio sejam respondidas de forma rápida e intuitiva. É como um painel de controle interativo ou um cubo mágico de informações.
+- **Modelo Relacional (OLTP)**: Foca em registrar cada detalhe das transações. É como um livro-caixa detalhado.
+- **Modelo Multidimensional (Data Warehouse)**: Foca em organizar os dados de forma que as análises e as perguntas de negócio sejam respondidas de forma rápida e intuitiva. É como um painel de controle interativo ou um cubo mágico de informações.
 
 ### Os modelos clássicos de implementação dimensional são:
 
 #### Modelo Estrela
 
-![Modelo Estrela](/Arquiteturas/Estrela.png)
-É o mais comum e simples. Nele, cada dimensão é uma única tabela desnormalizada, contendo todos os atributos e níveis hierárquicos. No centro, fica a tabela de fatos, que se conecta a todas as dimensões e armazena os indicadores. A principal vantagem é a simplicidade das consultas e o melhor desempenho, pois exige menos joins. A desvantagem é a redundância de dados e a dificuldade em atualizar a estrutura das dimensões.
+![Modelo Estrela](/Arquiteturas/image/Estrela.png)
+
+É o mais comum e simples.
+
+Nele, cada dimensão é uma única tabela desnormalizada, contendo todos os atributos e níveis hierárquicos. No centro, fica a tabela de fatos, que se conecta a todas as dimensões e armazena os indicadores. A principal vantagem é a simplicidade das consultas e o melhor desempenho, pois exige menos joins. A desvantagem é a redundância de dados e a dificuldade em atualizar a estrutura das dimensões.
 
 #### Modelo Snowflake (Floco de Neve)
 
-![Modelo Snowflake](/Arquiteturas/Snowflake.png)
+![Modelo Snowflake](/Arquiteturas/image/Snowflake.png)
+
 Neste modelo, as tabelas de dimensão são normalizadas. Os níveis hierárquicos são distribuídos em múltiplas tabelas que se relacionam entre si. Isso reduz a redundância de dados e facilita a manutenção estrutural das dimensões. No entanto, aumenta a complexidade das consultas e o número de joins necessários.
 
-`Tipos de hierarquias:`
+### Tipos de hierarquias:
 
 **Hierarquias Regulares**: São aquelas em que todos os membros de um nível inferior percorrem o mesmo número de níveis até chegar ao topo (ex: Cidade -> Estado -> País). Ambos os modelos estrela e snowflake funcionam bem para elas.
 
@@ -98,13 +107,13 @@ Neste modelo, as tabelas de dimensão são normalizadas. Os níveis hierárquico
 
 ## Criando o Dw do Minishop
 
-![Matriz Dimensão](/Arquiteturas/BD.png)
+![Matriz Dimensão](/Arquiteturas/image/BD.png)
 
 ## Matriz de Dimensão
 
-![Matriz Dimensão](/Arquiteturas/Matriz_dim.png)
+![Matriz Dimensão](/Arquiteturas/image/Matriz_dim.png)
 
-![Matriz Dimencional](/Arquiteturas/Matriz_dimencional.png)
+![Matriz Dimencional](/Arquiteturas/image/Matriz_dimencional.png)
 
 ### Atributos degenerados
 
@@ -118,7 +127,7 @@ Um exemplo clássico é o número de pedido ou o número do documento fiscal. Es
 
 No modelo dimensional, não usamos as chaves naturais (os identificadores originais dos sistemas transacionais) para identificar os membros das dimensões. Em vez disso, criamos uma chave substituta, que geralmente é um número sequencial inteiro. Essa chave não tem um significado para o negócio, mas é crucial dentro do data warehouse.
 
-#### Importância das chaves substitutas:
+#### Importância das chaves substitutas
 
 - **Eficiência em joins**: Realizar joins (conexões) entre tabelas usando números inteiros é muito mais eficiente do que usar textos, códigos longos ou chaves compostas. Isso é fundamental quando lidamos com milhões ou bilhões de linhas na tabela de fatos.
 
@@ -130,7 +139,7 @@ No modelo dimensional, não usamos as chaves naturais (os identificadores origin
 
 A chave substituta aparece tanto na dimensão (como chave primária do nível folha) quanto na tabela de fatos (como chave estrangeira), conectando cada evento da tabela de fatos ao membro correspondente da dimensão.
 
-![DW](/Arquiteturas/DW.png)
+![DW](/Arquiteturas/image/DW.png)
 
 ## ETL (Extract, Transform, Load)
 
@@ -152,10 +161,10 @@ O processo de ETL é o que realmente operacionaliza o Data Warehouse, transforma
 - **Surrogate Keys e Lookup**: As surrogate keys são códigos sequenciais que identificam os membros das dimensões. O processo de ETL gera essas chaves a partir dos códigos naturais e as utiliza para substituir os códigos naturais dos sistemas operacionais nas tabelas de fatos, um processo chamado Lookup.
 
 - Exemplo de Lookup antes do preenchimento
-![Lookup](/Arquiteturas/lookup.png)
+![Lookup](/Arquiteturas/image/lookup.png)
 
 - Exemplo de Lookup com dimensão preenchida
-![Lookup](/Arquiteturas/lookup_preenchida.png)
+![Lookup](/Arquiteturas/image/lookup_preenchida.png)
 
 - **Slowly Changing Dimensions (SCD Type 2)**: Em alguns casos, como nas SCD Type 2, quando um atributo relevante de um registro muda (ex: endereço de um cliente), uma nova linha é criada na dimensão em vez de atualizar a existente. Isso permite preservar o histórico completo das mudanças e garantir que as análises reflitam o contexto de cada período.
 
@@ -173,39 +182,39 @@ Apresentamos três enfoques para garantir a integridade das datas:
 
 ### Carga incremental baseada na chave natural
 
-> Atualiza ou insere registros com base em uma chave natural clara e única.
+Atualiza ou insere registros com base em uma chave natural clara e única.
 
 ### Carga incremental baseada na combinação de chaves substitutas das dimensões
 
-> Usada quando a tabela de fatos não tem uma chave natural própria.
+Usada quando a tabela de fatos não tem uma chave natural própria.
 
 ### Reprocessamento baseado no período de tempo
 
-> Elimina todos os dados de um período específico da tabela de fatos e, em seguida, recarrega todos os dados desse período novamente. Essa estratégia lida com novos registros, modificações e exclusões de forma eficaz, mas exige a leitura completa do período.
+Elimina todos os dados de um período específico da tabela de fatos e, em seguida, recarrega todos os dados desse período novamente. Essa estratégia lida com novos registros, modificações e exclusões de forma eficaz, mas exige a leitura completa do período.
 
 ### Processos de ETL
 
 - Cargas dimensionais
 
-![CargasDimensões](/Arquiteturas/cargasDim.png)
+![CargasDimensões](/Arquiteturas/image/CargasDim.png)
 
 - Carga 1
 
-![CargasFactuais](/Arquiteturas/cargasFato1.png)
+![CargasFactuais](/Arquiteturas/image/cargasFato1.png)
 
 - Carga 2
 
-![CargasFactuais](/Arquiteturas/cargaFato2.png)
+![CargasFactuais](/Arquiteturas/image/cargaFato2.png)
 
 - Carga 3
 
-![CargasFactuais](/Arquiteturas/cargaFato3.png)
+![CargasFactuais](/Arquiteturas/image/cargaFato3.png)
 
 ## Data Lake
 
 O Data Lake (DL) é um repositório centralizado que armazena grandes volumes de dados brutos, de diversas fontes e em seus formatos originais. Pense nele como um "grande lago" onde todos os tipos de dados (estruturados, semiestruturados e não estruturados) são despejados sem a necessidade de uma estrutura pré-definida.
 
-Ele serve para:
+**Ele serve para:**
 
 - **Armazenar dados brutos**: Preserva os dados exatamente como foram gerados, permitindo que sejam usados para análises futuras, mesmo que a finalidade inicial não seja clara.
 - **Flexibilidade**: Permite trabalhar com diferentes tipos de dados e formatos (JSON, logs, CSV, etc.) sem a rigidez de um Data Warehouse tradicional.
@@ -215,7 +224,7 @@ Ele serve para:
 
 Em resumo, o Data Lake é uma peça fundamental nas arquiteturas de dados modernas, oferecendo flexibilidade e capacidade de armazenamento para lidar com o volume e a variedade de dados atuais.
 
-![Data Lake](/Arquiteturas/schema_DL.png)
+![Data Lake](/Arquiteturas/image/Schema_DL.png)
 
 ### Arquitetura do Data Lake
 
@@ -231,11 +240,11 @@ Em resumo, o Data Lake é uma peça fundamental nas arquiteturas de dados modern
 
 **Camada Curated ou Ouro**: A terceira e última camada é onde os dados já estão organizados e preparados para o consumo analítico. Aqui, os dados estão prontos para serem usados em dashboards, projetos de ciência de dados ou para alimentar o Data Warehouse.
 
-![Data Lake](/Arquiteturas/camadas_dl.png)
+![Data Lake](/Arquiteturas/image/camadas_dl.png)
 
 - Quem usa o DL?
 
-![datalake](/Arquiteturas/datalake.png)
+![datalake](/Arquiteturas/image/datalake.png)
 
 ### Fluxos de Dados com Data Lake
 
@@ -250,17 +259,17 @@ Formatos de arquivo muito utilizados em Data Lakes:
 - **Parquet**: Um formato de código aberto, colunar binário, otimizado para desempenho analítico, que ocupa menos espaço em disco e permite leituras rápidas.
 - **Avro**: Um formato de serialização de dados binários, eficiente para armazenar e trocar grandes volumes de dados, que guarda os dados e o esquema (em JSON) no mesmo arquivo ou separadamente.
 
-> **Camada Bronze**
+**Camada Bronze**
 
-![Data Lake no Minishop](/Arquiteturas/DL_Minishop_bronze.png)
+![Data Lake no Minishop](/Arquiteturas/image/DL_Minishop_bronze.png)
 
-> **Camada Prata**
+**Camada Prata**
 
-![Data Lake no Minishop](/Arquiteturas/DL_Minishop_prata.png)
+![Data Lake no Minishop](/Arquiteturas/image/DL_Minishop_prata.png)
 
-> **Camada Ouro**
+**Camada Ouro**
 
-![Data Lake no Minishop](/Arquiteturas/DL_Minishop_ouro.png)
+![Data Lake no Minishop](/Arquiteturas/image/DL_Minishop_ouro.png)
 
 ## Data Lakehouse
 
@@ -290,35 +299,35 @@ Vamos a um exemplo prático para ilustrar os papéis:
 
 Imagine uma grande empresa de e-commerce que vende produtos online.
 
-> **Data Lake (Camada Ouro)**
+### Data Lake (Camada Ouro)
 
 - **Exemplo**: A empresa coleta todos os dados de cliques dos usuários no site, histórico de navegação, produtos visualizados, dados de sensores de estoque e logs de servidores. Esses dados brutos são armazenados no Data Lake. Após um processo inicial de limpeza e padronização (por exemplo, remover dados duplicados, padronizar formatos de data e extrair informações básicas de endereço), esses dados são movidos para a camada ouro do Data Lake.
 
 - **Papel**: Nesta camada, os cientistas de dados podem explorar esses dados para entender padrões de comportamento do cliente, construir modelos de recomendação de produtos ou identificar anomalias no tráfego do site. Os dados estão organizados por domínio (ex: dados de clientes, dados de produtos), mas ainda não estão em um modelo analítico rígido.
 
-> **Data Warehouse**
+### **Data Warehouse**
 
 - **Exemplo**: Para relatórios financeiros mensais, a empresa precisa saber o faturamento exato por categoria de produto, a margem de lucro por região e o desempenho de vendas por vendedor. Esses dados são extraídos do Data Lake (ou de outras fontes), transformados e carregados no Data Warehouse em um modelo de fatos e dimensões. Por exemplo, teríamos uma tabela de fatos de vendas e tabelas de dimensões para tempo, produto, cliente e região.
 
 - **Papel**: O Data Warehouse garante que esses relatórios sejam consistentes, confiáveis e que as métricas de negócio (como "faturamento" ou "margem de lucro") sejam calculadas da mesma forma sempre. É o ambiente para os "indicadores oficiais" da empresa e dashboards executivos.
 
-> **Lakehouse**
+### **Lakehouse**
 
 - **Exemplo**: A equipe de marketing quer analisar rapidamente o impacto de uma nova campanha promocional sobre o volume de vendas de um produto específico, cruzando dados de cliques no site (que estão no Data Lake) com dados de vendas (que poderiam estar no Data Warehouse ou também no Data Lake). Eles precisam de uma consulta SQL rápida sobre grandes volumes de dados que ainda estão em arquivos no Data Lake, sem ter que esperar que esses dados sejam totalmente modelados e carregados em um Data Warehouse tradicional.
 
 - **Papel**: O Lakehouse permite que a equipe de marketing execute consultas SQL complexas diretamente sobre os arquivos do Data Lake, como se fossem tabelas, aproveitando a escalabilidade do Data Lake e a capacidade analítica do SQL. Isso evita a duplicação de dados e agiliza a análise de grandes volumes de informações que não precisam de um modelo multidimensional tão rígido quanto o do Data Warehouse.
 
-> **Em resumo**, o Data Lake (camada ouro) é para dados preparados para exploração, o Data Warehouse é para relatórios e métricas de negócio estruturadas, e o Lakehouse é para análises SQL diretas sobre grandes volumes de dados no Data Lake, reduzindo a movimentação e duplicação.
+**Em resumo**, o Data Lake (camada ouro) é para dados preparados para exploração, o Data Warehouse é para relatórios e métricas de negócio estruturadas, e o Lakehouse é para análises SQL diretas sobre grandes volumes de dados no Data Lake, reduzindo a movimentação e duplicação.
 
 ## Arquitetira final do Minishop
 
-> **Data Lakehouse no Minishop**
+**Data Lakehouse no Minishop**
 
-![Data Lakehouse no Minishop](/Arquiteturas/LW_Arquitetura.png)
+![Data Lakehouse no Minishop](/Arquiteturas/image/LW_Arquitetura.png)
 
-> **Data Warehouse no Minishop**
+**Data Warehouse no Minishop**
 
-![Data Warehouse no Minishop](/Arquiteturas/ETL_DW_Arquitetura.png)
+![Data Warehouse no Minishop](/Arquiteturas/image/ETL_DW_Arquitetura.png)
 
 ## A camada semântica
 
@@ -326,7 +335,7 @@ Imagine que você está em um restaurante muito grande e sofisticado, com uma co
 
 Agora, pense nos clientes do restaurante (os analistas de negócios, cientistas de dados e ferramentas de BI). Eles não querem saber como cada ingrediente foi cortado ou qual panela foi usada. Eles querem pedir pratos específicos, como "a faturação do mês" ou "o ticket médio do cliente".
 
-> A **camada semântica** é como o cardápio desse restaurante.
+A **camada semântica** é como o cardápio desse restaurante.
 
 - **Ela traduz a complexidade da cozinha para a linguagem dos clientes**. Em vez de ver "tabela de vendas", "tabela de produtos", "tabela de clientes", o cliente vê "Faturamento Total", "Número de Pedidos", "Ticket Médio".
 - **Ela padroniza os "pratos"**. Se um cliente pede "Faturamento Total", o cardápio garante que todos os chefs (ferramentas de BI) usem a mesma receita (cálculo) para esse prato. Assim, não importa quem prepare, o resultado será sempre o mesmo, evitando confusões e inconsistências.
@@ -334,7 +343,7 @@ Agora, pense nos clientes do restaurante (os analistas de negócios, cientistas 
 
 Historicamente, cada cliente (ferramenta de BI) tinha seu próprio "caderninho de receitas" para criar seus pratos. Isso gerava muita inconsistência. A ideia da camada semântica centralizada é ter um cardápio único e oficial para todo o restaurante, garantindo que todos falem a mesma "linguagem de comida" e que os resultados sejam sempre confiáveis.
 
-> Em resumo, a camada semântica é a ponte entre a complexidade técnica dos dados e a simplicidade e consistência que os usuários de negócios precisam para tomar decisões. Ela garante que todos na empresa estejam "falando a mesma língua" quando se referem a métricas e indicadores importantes.
+**Em resumo**, a camada semântica é a ponte entre a complexidade técnica dos dados e a simplicidade e consistência que os usuários de negócios precisam para tomar decisões. Ela garante que todos na empresa estejam "falando a mesma língua" quando se referem a métricas e indicadores importantes.
 
 ## Governança de dados no DW e DWH
 
@@ -344,15 +353,4 @@ A governança de dados é um conjunto de práticas e ferramentas que organizam, 
 2. **Linhagem de dados**: Descreve o caminho percorrido pelos dados, desde a origem, transformações aplicadas e relatórios que os utilizam. Isso permite rastrear o fluxo completo da informação.
 3. **Qualidade dos dados**: Garante que os dados estejam corretos através de regras de validação, identificando problemas como valores negativos, duplicidades ou dados inválidos antes que afetem os relatórios.
 
-> A governança de dados atua como uma camada transversal na arquitetura, documentando, monitorando e controlando o uso dos dados, transformando-os em um ativo confiável para a empresa. Ferramentas como DataHub, Amundsen, Atlan e Alation ajudam a implementar essas práticas.
-
-## Conceitos aprendidos neste módulo
-
-- **Fundamentos de Sistemas de Dados**: Você aprendeu a diferença entre sistemas transacionais (OLTP) e analíticos (OLAP) e como eles se aplicam na prática.
-- **Data Warehouse (DW)**: Você explorou os fundamentos da modelagem multidimensional, entendendo como organizar dados analíticos usando tabelas de fatos e dimensões.
-- **Processo de ETL**: Você estudou o processo de Extração, Transformação e Carga de dados, incluindo conceitos essenciais como LOCAP, chaves substitutas (Surrogate Keys), Dimensões de Mudança Lenta (Slowly Changing Dimensions) e Dimensão Tempo.
-- **Data Lake**: Você compreendeu o conceito do Lago de Dados, suas camadas e os diferentes fluxos de dados que o alimentam.
-- **Lakehouse**: Você analisou a arquitetura do Lakehouse, que busca combinar as vantagens do Data Lake e do Data Warehouse.
-- **Camada Semântica**: Você discutiu a importância da camada semântica para organizar indicadores de negócio e garantir a consistência das análises.
-- **Governança de Dados**: Você abordou o tema da governança de dados, que assegura a qualidade, consistência e confiabilidade da informação.
-- **Visão Arquitetônica**: Mais do que ferramentas, você desenvolveu uma visão arquitetônica das plataformas de dados, o que é crucial para projetar soluções robustas e escaláveis.
+A governança de dados atua como uma camada transversal na arquitetura, documentando, monitorando e controlando o uso dos dados, transformando-os em um ativo confiável para a empresa. Ferramentas como DataHub, Amundsen, Atlan e Alation ajudam a implementar essas práticas.
