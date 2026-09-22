@@ -188,6 +188,5 @@ def soma_exemplo():
 
 4. **Resultados**:
 
-  - **Resposta**: Retorno programado no lambda_handler (ex: `statusCode: 200, body: "Hello from Lambda!"`).
-  - **Logs**: Ordem de execução das funções, saída dos print (ex: `"Hello World", "3", {'nome': 'oscar'}`).
-
+    - **Resposta**: Retorno programado no lambda_handler (ex: `statusCode: 200, body: "Hello from Lambda!"`).
+    - **Logs**: Ordem de execução das funções, saída dos print (ex: `"Hello World", "3", {'nome': 'oscar'}`).
