@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda Extract - Ingestão Bronze (RDS -> S3)
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 512
+    Runtime: python3.12
+
+Parameters:
+  SecretName:
+    Type: String
+    Default: "dev/alumart/database"
+  S3Bucket:
+    Type: String
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets privadas para a Lambda
+  LambdaSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security Group da Lambda
+
+Resources:
+
+  # -----------------------------------------------------------------------------------
+  # Lambda Bronze (extração)
+  # -----------------------------------------------------------------------------------
+  LambdaExtract:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda_extract_bronze
+      CodeUri: lambda_extract/
+      Handler: lambda_function.handler
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref SecretName
+          S3_BUCKET: !Ref S3Bucket
+      VpcConfig:
+        SubnetIds: !Ref SubnetIds
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroupId
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref S3Bucket
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountID}:secret:${SecretName}-*"
