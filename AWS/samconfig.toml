@@ -1,0 +1,14 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "datalake-alumart-dev"
+resolve_s3 = true
+s3_prefix = "datalake-alumart-dev"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "SecretName=\"dev/alumart/database\" S3Bucket=\"alumart-datalake-eng-978131571827-us-west-2-an \" SubnetIds=\"subnet-2c6ae054,subnet-6223473f,subnet-bba5b890\" LambdaSecurityGroupId=\"sg-01aacd35\""
+image_repositories = []
+
+[default.global.parameters]
+region = "us-west-2"
