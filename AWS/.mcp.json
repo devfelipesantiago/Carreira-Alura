@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+        "awslabs-aws-api": {
+            "type": "stdio",
+            "command": "uvx",
+            "args": [
+                "awslabs.aws-api-mcp-server@latest"
+            ],
+            "env": {
+                "AWS_REGION": "us-east-2",
+                "AWS_PROFILE": "default"
+            }
+        }
+    }
+}
