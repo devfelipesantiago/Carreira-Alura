@@ -29,14 +29,7 @@ def get_db_secret():
     return _db_secret
 
 
-# Tabelas a serem extraídas
-TABLES = [
-    "erp_hp_clie",
-    "erp_it_prod",
-    "erp_ov_cabe",
-    "erp_ov_item",
-    "erp_fn_pgto"
-    ]
+TABLES = ["erp_hp_clie", "erp_it_prod", "erp_ov_cabe", "erp_ov_item", "erp_fn_pgto"]
 
 
 def get_connection():

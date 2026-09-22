@@ -7,7 +7,6 @@ from datetime import datetime
 
 import psycopg2
 import boto3
-from botocore.config import Config
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -15,14 +14,8 @@ logger.setLevel(logging.INFO)
 SECRET_NAME = os.environ["SECRET_NAME"]
 S3_BUCKET = os.environ["S3_BUCKET"]
 
-aws_client_config = Config(
-    connect_timeout=5,
-    read_timeout=10,
-    retries={"total_max_attempts": 2, "mode": "standard"},
-)
-
-s3_client = boto3.client("s3", config=aws_client_config)
-secrets_client = boto3.client("secretsmanager", config=aws_client_config)
+s3_client = boto3.client("s3")
+secrets_client = boto3.client("secretsmanager")
 
 _db_secret = None
 
@@ -36,14 +29,7 @@ def get_db_secret():
     return _db_secret
 
 
-# Tabelas a serem extraídas
-TABLES = [
-    "erp_hp_clie",
-    "erp_it_prod",
-    "erp_ov_cabe",
-    "erp_ov_item",
-    "erp_fn_pgto"
-    ]
+TABLES = ["erp_hp_clie", "erp_it_prod", "erp_ov_cabe", "erp_ov_item", "erp_fn_pgto"]
 
 
 def get_connection():
