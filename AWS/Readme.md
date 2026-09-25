@@ -719,3 +719,77 @@ As recomendações incluem:
 - Converter tipos de dados.
 - Investigar inconsistências com a área de negócio.
 - A decisão é não passar registros inválidos para a camada Silver, garantindo 100% de consistência. O próximo passo é implementar essas regras em um AWS Lambda.
+
+## Criando o Lambda da Silver
+
+Objetivo Principal Implementar uma função AWS Lambda para transformar dados da camada Bronze para a camada Silver, focando na garantia de qualidade. O desenvolvimento será assistido por IA usando Cloud Code.
+
+### Definição da Persona e Stack Tecnológica
+
+- **Persona**: Engenheiro de dados especialista, responsável pela camada Silver, focado em código limpo, reutilizável e performático. Deve usar a memória para contextualização do projeto e problemas de qualidade mapeados na Bronze.
+- **Stack**: AWS via MCP, Python, Pandas, Parquet, AWS Lambda, AWS Lambda Layers, AWS Athena.
+
+### Princípios de Código (Config-first)
+
+- **Config-first, não script-first**: Um único Lambda Silver parametrizável. As diferenças entre tabelas são gerenciadas por um dicionário TABLE_CONFIG, não por scripts separados. Novas regras de transformação são adicionadas como chaves no config da tabela.
+
+```sh
+TABLE_CONFIG = {
+    "nome_tabela": {
+        # ... configurações específicas da tabela ...
+    }
+}
+```
+
+- **Remover linha é último recurso**:
+
+  1. Nullificar o campo inválido e manter a linha.
+  2. Marcar com flag booleana na própria linha.
+  3. Remover a linha apenas se for estruturalmente inútil. A remoção deve ser documentada no código.
+
+- **Validação cross-table não é responsabilidade de um único Lambda**: Inconsistências que exigem JOIN entre tabelas devem resultar na adição de uma coluna flag na Silver (ex: `flag_sem_pgto: bool`). A resolução final ocorre na Gold.
+
+- **Falhas silenciosas são proibidas**: Transformações que não podem ser aplicadas devem resultar em pd.NA no campo, nunca em exceção. O Lambda deve logar a contagem de valores não convertidos.
+
+**Processamento incremental**: Ler apenas os dados novos da Bronze. Para tabelas com campo de data relevante, particionar por `YEAR/MONTH`.
+
+**Caminho de saída**: `silver/{clientes}/{particionamento}/nome_tabela_{ts}.parquet`
+
+**Estrutura do** `TABLE_CONFIG`. Um dicionário Python que define as regras de transformação e validação para cada tabela, incluindo:
+
+- **pk_cols**: Chaves primárias para deduplicação.
+- **date_cols**: Colunas de data para conversão.
+- **col_mappings**: Mapeamento de colunas e normalização de domínio (ex: "cd_status": {"pago": "PAGO", "Pago": "PAGO"}), com fallback para .str.upper().
+- **drop_null_fk**: Colunas FK onde a linha deve ser removida se nula/vazia.
+- **validity_filters**: Filtros numéricos para remover linhas (ex: {"col": "qtd", "op": ">", "val": 0}).
+- **format_validations**: Validações de formato para nullificar campos (ex: {"col": "email", "type": "email"}).
+- **cross_table_flags**: Checks cross-table para adicionar colunas flag.
+
+#### **Métricas Obrigatórias do Handler**
+
+- O handler do Lambda deve retornar um dicionário com métricas por tabela processada, como:
+  - rows_bronze: total lido
+  - rows_after_dedup: após deduplicação
+  - rows_removed_fk: removidos por FK nula
+  - rows_removed_filter: removidos por validity_filters
+  - fields_nullified: campos nulificados por format_validations
+  - date_parse_failures: valores de data que viraram pd.NA
+  - s3_key: caminho do arquivo Silver gerado
+
+### Log de Qualidade de Dados (Obrigatório)
+
+Toda linha removida ou campo nulificado deve ser registrada em um arquivo de log no Data Lake.
+
+- **Destino**: `silver/data_quality_log/{tabela}/{tabela}_{timestamp}.parquet`
+- **Schema obrigatório**: `table_name, run_timestamp, source_s3_key, row_original` (JSON da linha original), `validation_step, field_name, field_value, action_taken` ("row_removed" ou "field_nullified").
+- **Regras**: O log nunca deve bloquear a escrita da Silver. Deve ser consultável via Athena.
+
+### Tratamento Semântico e Renomeações
+
+A camada Silver deve usar nomes de negócio, não nomes técnicos do ERP.
+
+- **Renomeação de tabelas**: Controlada por `output_name no TABLE_CONFIG`.
+  - Ex: erp_hp_clie -> clientes
+- **Renomeação de colunas**: Controlada por `col_mappings: {original: novo}`.
+- **Regras semânticas obrigatórias**: `col_mappings` aplicado antes de qualquer validação. Campos como `pk_cols e date_cols` devem usar os nomes pós-mapeamento. `row_original` no log de qualidade deve gravar a linha com nomes Silver.
+
