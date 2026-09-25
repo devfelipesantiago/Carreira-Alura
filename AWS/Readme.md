@@ -114,7 +114,7 @@
 - **Alternativas**: AWS Glue, Amazon EMR (com CDC, autoescalonamento, computação distribuída).
 - **Outro uso comum**: Consumo de APIs.
 
-### Criando a Lambda de Ingestão (Extract)
+### Lambda de Ingestão (Extract)
 
 - **Acesso**: AWS Management Console > pesquisar "Lambda".
 - **Iniciar**: "Criar função".
@@ -179,17 +179,17 @@ def soma_exemplo():
 2. **Test**: Criar evento de teste (ex: "teste de exemplo").
 3. **Conteúdo do evento (JSON)**:
 
-```json
-{
-  "nome": "oscar"
-}
-// Invocar para executar a função.
-```
+  ```json
+  {
+    "nome": "oscar"
+  }
+  // Invocar para executar a função.
+  ```
 
-4. **Resultados**:
+- **Resultados**
 
-    - **Resposta**: Retorno programado no lambda_handler (ex: `statusCode: 200, body: "Hello from Lambda!"`).
-    - **Logs**: Ordem de execução das funções, saída dos print (ex: `"Hello World", "3", {'nome': 'oscar'}`).
+  - **Resposta**: Retorno programado no lambda_handler (ex: `statusCode: 200, body: "Hello from Lambda!"`).
+  - **Logs**: Ordem de execução das funções, saída dos print (ex: `"Hello World", "3", {'nome': 'oscar'}`).
 
 ## Configurando o VPC Endpoint e o Secret Maneger
 
@@ -226,12 +226,12 @@ def soma_exemplo():
   - Exemplo: `DEV/Alumart/Database` (ou `dev/alumart/database1` para evitar duplicidade).
 - Tags: Adicionar tags para rastreamento.
 
-  Exemplo: _`Key: projeto, Value: datalake-alumart`_.
+  Exemplo: `Key: projeto, Value: datalake-alumart`.
 - Rotação: Opção de habilitar rotação de segredos (não habilitado nesta aula).
 
 - Recuperação do Valor do Segredo: Na seção "Valor do segredo", clicar em "Recuperar valor do segredo" para ver os detalhes (username, password, engine, host, port, database).
 
-#### Exemplo de Código Python para Recuperar Segredo:
+#### Exemplo de Código Python para Recuperar Segredo
 
 ```py
 import boto3
@@ -386,7 +386,7 @@ def extract_table(cursor, table_name):
 
 - **write_csv_to_s3(columns, rows, table_name, timestamp)**: Função para formatar os dados como CSV e enviá-los para o S3.
 - **io.StringIO**: Usado para criar um buffer em memória para a escrita CSV.
-- **Chave do S3**: O arquivo é salvo no formato bronze/<nome_tabela>/<nome_tabela>_<timestamp>.csv.
+- **Chave do S3**: O arquivo é salvo no formato `bronze/<nome_tabela>/<nome_tabela>_<timestamp>.csv.`
 - **s3_client.put_object**: Método do Boto3 para enviar o arquivo CSV para o S3.
 
 #### Exemplo de escrita no S3
@@ -437,7 +437,7 @@ def write_csv_to_s3(columns, rows, table_name, timestamp):
 
 ## Deploy da Lambda
 
-### Para gerar o pacote da função Lambda, utilize o comando no terminal:
+### Para gerar o pacote da função Lambda, utilize o comando no terminal
 
 ```bash
 sam build
@@ -464,7 +464,7 @@ Durante o deploy guiado, são inseridos os seguintes valores:
 - **Confirmação de mudanças, criação de role e habilitação de Disable rollback**.
 - **Salvamento das respostas em samconfig.toml**.
 
-#### Geração do samconfig.toml.
+#### Geração do `samconfig.toml.`
 
 > **O arquivo samconfig.toml é gerado automaticamente com as configurações definidas, como:**
 
@@ -571,7 +571,7 @@ A importância de dados de qualidade para evitar decisões prejudiciais. Dados r
 
   Consultas SQL são usadas para validar a qualidade dos dados.
 
-#### Exemplo de checagem de duplicidade:
+#### Exemplo de checagem de duplicidade
 
 ```sql
 SELECT COUNT(*) as total,
@@ -691,10 +691,10 @@ Campos de data armazenados como string são uma criticidade média que exige con
 
 - Mapeamento de campos de data:
 
-| Tabela | Campo | Tipo atual | Tipo correto |
-| --- | --- | --- | --- |
-| erp_ov_cabe | dt_ov | string | date |
-| erp_fn_pgto | dt_pgto | string | date |
+| Tabela      | Campo   | Tipo atual | Tipo correto |
+| ----------- | ------- | ---------- | ------------ |
+| erp_ov_cabe | dt_ov   | string     | date         |
+| erp_fn_pgto | dt_pgto | string     | date         |
 
 ### Aplicando Validações com Expressões Regulares
 
