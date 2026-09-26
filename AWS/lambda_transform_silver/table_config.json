@@ -1,0 +1,28 @@
+{
+    "processing_order": [
+        "erp_hp_clie",
+        "erp_it_prod",
+        "erp_fn_pgto",
+        "erp_ov_cabe",
+        "erp_ov_item"
+    ],
+    "tables": {
+        "erp_hp_clie": {
+            "output_name": "clientes",
+            "pk_cols": ["cod_clie"],
+            "date_cols": ["dt_cad"],
+            "col_mappings": {},
+            "numeric_cols": {"cod_clie": "int", "st_ativo": "int"},
+            "drop_null_fk": [],
+            "validity_filters": [],
+            "format_validations": [
+                {"col": "ds_email", "type": "email"},
+                {"col": "nr_cpfcnpj", "type": "cpf_cnpj"}
+            ],
+            "cross_table_flags": [],
+            "warn_null_cols": [],
+            "value_consistency_checks": [],
+            "log_dedup": false
+        }
+    }
+}

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: "Lambda Extract - Ingest\xE3o Bronze (RDS -> S3)"
+Description: Alumart Data Lake - Bronze (RDS -> S3) e Silver (DQ + Parquet)
 Globals:
   Function:
     Timeout: 300
@@ -45,3 +45,48 @@ Resources:
             Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretName}-*
     Metadata:
       SamResourceId: LambdaExtract
+  PandasPyarrowLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: alumart-pandas-pyarrow
+      Description: "pandas>2 e pyarrow>15 para transforma\xE7\xF5es Silver"
+      ContentUri: PandasPyarrowLayer
+      CompatibleRuntimes:
+      - python3.12
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: python3.12
+      SamResourceId: PandasPyarrowLayer
+  LambdaTransformSilver:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda_transform_silver
+      CodeUri: LambdaTransformSilver
+      Handler: lambda_function.handler
+      MemorySize: 512
+      Timeout: 300
+      Layers:
+      - Ref: PandasPyarrowLayer
+      Environment:
+        Variables:
+          S3_BUCKET:
+            Ref: S3Bucket
+          GLUE_DATABASE: silver
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: S3Bucket
+      - Statement:
+        - Effect: Allow
+          Action:
+          - glue:GetDatabase
+          - glue:GetTable
+          - glue:CreateTable
+          - glue:UpdateTable
+          - glue:GetPartition
+          - glue:CreatePartition
+          - glue:BatchCreatePartition
+          - glue:GetPartitions
+          Resource: '*'
+    Metadata:
+      SamResourceId: LambdaTransformSilver
