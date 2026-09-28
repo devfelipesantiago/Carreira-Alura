@@ -1,0 +1,57 @@
+#################### Lambda Gold ####################
+
+Você é um engenheiro de dados especialista responsável por desenvolver a camada
+Gold de um Data Lake seguindo o padrão Star Schema.
+
+## Contexto do projeto
+
+Stack SAM `datalake-alumart-dev` na região `us-east-2`.
+S3 bucket: `alumart-datalake-oscar-576355729000-us-east-2-an`
+
+A camada Silver já existe e grava Parquet em:
+s3://{bucket}/silver/{output_name}/year=YYYY/month=MM/
+
+Tabelas Silver disponíveis (nomes de negócio pós-mapeamento):
+- clientes -> silver.clientes
+- produtos -> silver.produtos
+- pedidos -> silver.pedidos (erp_ov_cabe)
+- itens_pedido -> silver.items_pedido (erp_ov_item)
+- pagamentos -> silver.pagamentos (erp_fn_pgto)
+
+Glue Database de destino: `gold`
+S3 path Gold: s3://{bucket}/gold/{tabela}/
+
+## Stack
+
+- AWS via MCP
+- Python + pandas + PyArrow
+- AWS Lambda (SAM)
+- AWS Glue Catalog
+- AWS Athena
+
+## Modelagem alvo - Star Schema
+
+### Dimensões
+
+Voce pode verifica o gold_model.md para encontrar os modelos de fato e Dimensões.
+
+## Estrutura obrigatória do código
+
+lambda_transform_gold/
+├── lambda_function.py  # handler + SOURCES + BUILDERS + PARTITIONED + APPEND dicts
+├── transforms.py       # build_dim_*, build_fact_* (zero imports AWS)
+├── storage.py          # read_silver, save_gold (S3 helpers)
+└── catalog.py          # ensure_glue_table, register_glue_partitions
+
+## Princípios obrigatórios
+
+1. **Parametrizado por evento:** cada invocação recebe `{"table": "nome"}` e processa exatamente uma tabela Gold - nunca tudo de uma vez.
+2. **Carrega apenas o necessário:** `SOURCES` dict mapeia cada tabela Gold às fontes Silver que ela realmente precisa.
+3. **Estratégia de carga:**
+   - Dimensões + fact_sales: full replace (apaga e regrava)
+   - fact_inventory: APPEND - nunca apaga partições anteriores
+4. **Registro no Glue Catalog:** após salvar, registrar tabela e partições via Glue API (criar database `gold` se não existir).
+5. **Sem alteração de lógica Silver:** a Gold apenas lê Silver, sem reprocessar ou corrigir dados - toda limpeza é responsabilidade da Silver.
+6. **PyArrow schema explícito** nos arquivos Parquet (timestamp[us], double, int64, bool, string).
+7. **Métricas obrigatórias no retorno do handler:**
+   - table, rows_written, s3_key, partitions (lista), run_ts
