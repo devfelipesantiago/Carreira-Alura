@@ -1,28 +1,133 @@
 {
-    "processing_order": [
-        "erp_hp_clie",
-        "erp_it_prod",
-        "erp_fn_pgto",
-        "erp_ov_cabe",
-        "erp_ov_item"
-    ],
-    "tables": {
-        "erp_hp_clie": {
-            "output_name": "clientes",
-            "pk_cols": ["cod_clie"],
-            "date_cols": ["dt_cad"],
-            "col_mappings": {},
-            "numeric_cols": {"cod_clie": "int", "st_ativo": "int"},
-            "drop_null_fk": [],
-            "validity_filters": [],
-            "format_validations": [
-                {"col": "ds_email", "type": "email"},
-                {"col": "nr_cpfcnpj", "type": "cpf_cnpj"}
-            ],
-            "cross_table_flags": [],
-            "warn_null_cols": [],
-            "value_consistency_checks": [],
-            "log_dedup": false
+  "table_configs": {
+    "erp_hp_clie": {
+      "output_name": "clientes",
+      "pk_cols": ["cod_clie"],
+      "date_cols": ["dt_cad"],
+      "col_mappings": {},
+      "drop_null_fk": [],
+      "validity_filters": [],
+      "format_validations": [
+        {"col": "ds_email", "type": "email"},
+        {"col": "nr_cpfcnpj", "type": "cpf_cnpj"}
+      ],
+      "cross_table_flags": [],
+      "computed_flags": [],
+      "partition_col": null,
+      "log_dedup": false
+    },
+    "erp_it_prod": {
+      "output_name": "produtos",
+      "pk_cols": ["cod_prod"],
+      "date_cols": ["dt_cad"],
+      "col_mappings": {},
+      "drop_null_fk": [],
+      "validity_filters": [],
+      "format_validations": [],
+      "cross_table_flags": [],
+      "computed_flags": [],
+      "partition_col": null,
+      "log_dedup": false
+    },
+    "erp_fn_pgto": {
+      "output_name": "pagamentos",
+      "pk_cols": ["id_pgto"],
+      "date_cols": ["dt_pgto"],
+      "col_mappings": {},
+      "drop_null_fk": [],
+      "validity_filters": [],
+      "format_validations": [],
+      "cross_table_flags": [],
+      "computed_flags": [],
+      "partition_col": "dt_pgto",
+      "log_dedup": false
+    },
+    "erp_ov_cabe": {
+      "output_name": "pedidos",
+      "pk_cols": ["nr_ov"],
+      "date_cols": ["dt_ov", "dt_pgto"],
+      "col_mappings": {
+        "cd_status": {
+          "pago": "PAGO",
+          "Pago": "PAGO",
+          "PAGO": "PAGO",
+          "pendente": "PENDENTE",
+          "Pendente": "PENDENTE",
+          "PENDENTE": "PENDENTE",
+          "devolvido": "DEVOLVIDO",
+          "Devolvido": "DEVOLVIDO",
+          "DEVOLVIDO": "DEVOLVIDO",
+          "cancelado": "CANCELADO",
+          "Cancelado": "CANCELADO",
+          "CANCELADO": "CANCELADO"
+        },
+        "cd_canal": {
+          "website": "WEBSITE",
+          "Website": "WEBSITE",
+          "WEBSITE": "WEBSITE",
+          "app_mobile": "APP_MOBILE",
+          "App_mobile": "APP_MOBILE",
+          "APP_MOBILE": "APP_MOBILE",
+          "whatsapp": "WHATSAPP",
+          "Whatsapp": "WHATSAPP",
+          "WHATSAPP": "WHATSAPP",
+          "marketplace": "MARKETPLACE",
+          "Marketplace": "MARKETPLACE",
+          "MARKETPLACE": "MARKETPLACE",
+          "instagram": "INSTAGRAM",
+          "Instagram": "INSTAGRAM",
+          "INSTAGRAM": "INSTAGRAM",
+          "loja_fisica": "LOJA_FISICA",
+          "Loja_fisica": "LOJA_FISICA",
+          "LOJA_FISICA": "LOJA_FISICA"
         }
+      },
+      "drop_null_fk": [],
+      "validity_filters": [],
+      "format_validations": [],
+      "cross_table_flags": [
+        {
+          "flag_col": "fl_sem_pgto",
+          "condition": "cd_status == 'PAGO'",
+          "ref_table": "pagamentos",
+          "ref_key": "nr_ov",
+          "self_key": "nr_ov"
+        }
+      ],
+      "computed_flags": [],
+      "partition_col": "dt_ov",
+      "log_dedup": false
+    },
+    "erp_ov_item": {
+      "output_name": "itens_pedido",
+      "pk_cols": ["nr_ov", "nr_seq"],
+      "date_cols": [],
+      "col_mappings": {},
+      "drop_null_fk": ["cod_prod"],
+      "validity_filters": [
+        {"col": "qt_item", "op": ">", "val": 0}
+      ],
+      "format_validations": [],
+      "cross_table_flags": [],
+      "computed_flags": [
+        {
+          "flag_col": "fl_calc_inconsistente",
+          "expr": "abs(vl_tot_item - (qt_item * vl_unit - vl_desc_item)) > 0.01"
+        },
+        {
+          "flag_col": "fl_qt_negativa",
+          "expr": "qt_item < 0"
+        }
+      ],
+      "partition_col": null,
+      "log_dedup": false
     }
+  },
+  "processing_order": [
+    "erp_hp_clie",
+    "erp_it_prod",
+    "erp_fn_pgto",
+    "erp_ov_cabe",
+    "erp_ov_item"
+  ]
 }

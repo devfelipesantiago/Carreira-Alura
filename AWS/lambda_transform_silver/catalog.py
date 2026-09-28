@@ -68,17 +68,34 @@ def _pandas_dtype_to_glue(dtype) -> str:
 
 
 def ensure_glue_table(output_name: str, df: pd.DataFrame, partitioned: bool) -> None:
+    """Cria ou atualiza a tabela no Glue Catalog.
+
+    Quando partitioned=True, as colunas 'year' e 'month' são registradas em
+    PartitionKeys (e NÃO em StorageDescriptor.Columns), conforme exigido pelo
+    Glue/Athena para tabelas particionadas por Hive-style.
+    """
     try:
         location = f"s3://{S3_BUCKET}/silver/{output_name}/"
 
-        ignored_cols = {"year", "month"} if partitioned else set()
+        # Colunas de partição não devem aparecer em StorageDescriptor.Columns
+        partition_col_names = ["year", "month"] if partitioned else []
+        ignored_cols = set(partition_col_names)
         data_columns = [c for c in df.columns if c not in ignored_cols]
         col_defs = [
             {"Name": col, "Type": _pandas_dtype_to_glue(df[col].dtype)}
             for col in data_columns
         ]
 
-        partition_keys = []
+        # PartitionKeys: year (bigint) e month (bigint) para tabelas particionadas
+        partition_keys = (
+            [
+                {"Name": "year", "Type": "bigint"},
+                {"Name": "month", "Type": "bigint"},
+            ]
+            if partitioned
+            else []
+        )
+
         storage_descriptor = {
             "Location": location,
             "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
@@ -139,14 +156,15 @@ def register_glue_partitions(
 
         for i in range(0, len(partition_inputs), 100):
             batch = partition_inputs[i : i + 100]
-        try:
-            glue_client.batch_create_partition(
-                DatabaseName=GLUE_DATABASE,
-                TableName=output_name,
-                PartitionInputList=batch,
-            )
-        except Exception as exc:
-            logger.info(f"[Glue] Partições registradas para '{output_name}': {exc}")
+            try:
+                glue_client.batch_create_partition(
+                    DatabaseName=GLUE_DATABASE,
+                    TableName=output_name,
+                    PartitionInputList=batch,
+                )
+            except Exception as exc:
+                # AlreadyExists é esperado em reprocessamentos incrementais.
+                logger.info(f"[Glue] Partições do lote processadas para '{output_name}': {exc}")
 
     except Exception as exc:
         logger.error(f"[Glue] Erro ao registrar partições para '{output_name}': {exc}")

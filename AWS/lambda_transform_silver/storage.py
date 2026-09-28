@@ -87,11 +87,12 @@ def save_silver(
     run_ts: str,
 ) -> tuple[list[str], set[tuple[int, int]]]:
     output_name = config["output_name"]
-    partition_col = config["partition_col"]
+    partition_col = config.get("partition_col")
     written_keys: list[str] = []
-    partitions_written: set[tuple[int, int]] = set(tuple[int, int], [])
+    partitions_written: set[tuple[int, int]] = set()
 
     if partition_col and partition_col in df.columns:
+        part_dt = pd.to_datetime(df[partition_col], errors="coerce")
         tmp = df.assign(
             year=part_dt.dt.year.astype("Int64"), month=part_dt.dt.month.astype("Int64")
         )
@@ -101,13 +102,8 @@ def save_silver(
             year, month = int(year), int(month)
             prefix = _silver_prefix(output_name, year, month)
 
-            old_keys = [k for k in _list_s3_prefix(prefix) if k.endswith(".parquet")]
-            if old_keys:
-                _delete_s3_objects(old_keys)
-                logger.info(
-                    f"{output_name} Deletados {len(old_keys)} arquivo(s) antigo(s) em {prefix}"
-                )
-
+            # Não removemos arquivos anteriores: cada execução é incremental e
+            # o timestamp no nome preserva o histórico da partição.
             key = f"{prefix}{output_name}_{run_ts}.parquet"
             _write_parquet_to_s3(partition_df, key)
             written_keys.append(key)
@@ -117,13 +113,8 @@ def save_silver(
             )
     else:
         prefix = _silver_prefix(output_name)
-        old_keys = [k for k in _list_s3_prefix(prefix) if k.endswith(".parquet")]
-        if old_keys:
-            _delete_s3_objects(old_keys)
-            logger.info(
-                f"{output_name} Deletados {len(old_keys)} arquivo(s) antigo(s) em {prefix}"
-            )
-
+        # Não removemos arquivos anteriores: cada execução é incremental e
+        # o timestamp no nome preserva o histórico da tabela.
         key = f"{prefix}{output_name}_{run_ts}.parquet"
         _write_parquet_to_s3(df, key)
         written_keys.append(key)
