@@ -793,3 +793,99 @@ A camada Silver deve usar nomes de negócio, não nomes técnicos do ERP.
 - **Renomeação de colunas**: Controlada por `col_mappings: {original: novo}`.
 - **Regras semânticas obrigatórias**: `col_mappings` aplicado antes de qualquer validação. Campos como `pk_cols e date_cols` devem usar os nomes pós-mapeamento. `row_original` no log de qualidade deve gravar a linha com nomes Silver.
 
+## Modelando a Gold
+
+### Definindo Perguntas de Negócio e Objetivos Analíticos
+
+- Como evoluíram as receitas ao longo do tempo? Para responder a essa pergunta, precisamos:
+
+  - Das datas dos pedidos que ocorreram (estamos falando de tempo, portanto, precisamos de datas).
+  - Dos valores desses pedidos, pois trataremos de receita.
+  - De uma análise ao longo do tempo, com possibilidade de segmentação por períodos.
+
+- Qual canal de venda está crescendo ou caindo? Precisamos:
+
+  - De quais são os canais de venda vinculados a cada venda.
+  - De informações que permitam segmentar a evolução por canal.
+
+- Quais produtos geram mais receita? Precisamos:
+
+  - De quais produtos estão em quais pedidos.
+  - Dos valores pelos quais esses produtos foram vendidos.
+  - De agregações para somar e entender quais produtos mais vendem e geram mais receita.
+
+- Quais clientes geram mais receita? Precisamos:
+
+  - Dos valores das vendas.
+  - De quem são as pessoas clientes envolvidas na maior parte dos pedidos.
+
+- Existe estacionalidade? Estacionalidade é o conceito de momentos em que ocorrem, naturalmente, compras maiores. Por exemplo, em - períodos de férias ou em uma Black Friday (Black Friday), pode haver um volume muito maior de vendas. Queremos verificar se, de fato, hoje existe alguma característica de estacionalidade. A partir disso, podemos:
+
+  - Planejar campanhas para tentar aumentar vendas em períodos mais baixos.
+  - Preparar o estoque para momentos de maior demanda. Portanto, é um ponto muito importante.
+
+- Quais meses e trimestres vendem mais? Trata-se de uma análise por mês e por trimestre. Para isso, precisamos:
+
+  - Das datas das vendas.
+  - De capacidade de agrupar essas datas no conceito de meses e trimestres.
+
+### Definindo a dimensão de tempo
+
+Criamos um script (rotina de código) que preenche atributos derivados, como:
+
+- Se a data é um feriado.
+- Se a data é fim de semana.
+- A qual dia da semana a data pertence.
+- A qual trimestre do ano a data pertence.
+
+### Determinando Métricas e Granularidade do Fato
+
+O fato representa o evento a ser medido. A métrica central é a receita líquida, desdobrada em:
+
+- Receita por canal (canal crescendo ou caindo).
+- Produtos que geram mais receita.
+- Receita por produto.
+- Receita por cliente.
+- Receita por data.
+- Receita por dia da semana
+
+### Planejando dimensões a partir da camada Silver
+
+- Dimensão de data (também chamada dimensão de tempo), com um campo para identificar se é fim de semana.
+- Dimensão de canal.
+- Dimensão de produto.
+- Dimensão de cliente.
+- Dados de nacionalidade, quando pertinentes às análises.
+
+### Construindo e consolidando dimensões
+
+- Dados de cliente e vendas por cliente a partir da tabela de clientes como base da `DIM_Cliente`.
+- Dado de produto a partir da tabela de produto para a `DIM_Produto`.
+- Canal de venda a partir da tabela de pedidos (coluna de canal de venda) com `DISTINCT` para a `DIM_Canal`.
+- Data do evento a partir da tabela de pedidos e geração da coluna `dt_pagto` (tomando a parte de data de `dt_pagto`) para a `DIM_Data`.
+- Métrica no nível de item de pedido, com o `JOIN` utilizando o campo `cd_status` igual a '`pago`'.
+
+### Definindo chaves naturais e surrogate keys
+
+- Chaves Naturais: Chaves primárias do sistema de origem, usadas para deduplicação.
+- Surrogate Keys: Chaves artificiais criadas para o ambiente analítico (`customer_key`, `product_key`, `date_key`), otimizando JOINs e refletindo a visão de negócio.
+
+### Calculando Métricas Derivadas e Tratando Qualidade dos Dados
+
+Métricas derivadas são calculadas a partir dos dados granulares.
+
+- Receita Líquida: `valor_total_item` - `desconto_item`.
+- Frete Rateado: `valor_frete` * (`valor_item` / `valor_total_pedido`).
+
+### Modelando o Esquema Estrela e o Fato de Inventário
+
+A modelagem resulta em um esquema estrela:
+
+- Fato Vendas (Sales)
+- DIM_Cliente
+- DIM_Data
+- DIM_Produto
+- DIM_Pagamento
+- DIM_Canal
+
+Um Fato Inventário separado é criado para analisar movimentos de produtos ao longo do tempo, utilizando o conceito de snapshots diários para análise histórica.
