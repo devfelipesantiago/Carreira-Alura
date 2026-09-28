@@ -18,6 +18,15 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["LambdaTransformSilver"]
 
+[function_build_definitions.fc5e6f24-607e-4496-9963-8551a446c8d8]
+codeuri = "/home/felipe/Documentos/Carreira-Alura/AWS/lambda_transform_gold"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "lambda_function.handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["LambdaTransformGold"]
+
 [layer_build_definitions.1db189b3-25ba-4430-a815-660acf453381]
 layer_name = "PandasPyarrowLayer"
 codeuri = "/home/felipe/Documentos/Carreira-Alura/AWS/layers/pandas_pyarrow"

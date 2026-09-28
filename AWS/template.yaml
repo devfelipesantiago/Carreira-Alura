@@ -92,3 +92,33 @@ Resources:
                 - glue:BatchCreatePartition
                 - glue:GetPartitions
               Resource: "*"
+# Lambda Gold (star schema)
+  LambdaTransformGold:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda_transform_gold
+      CodeUri: lambda_transform_gold/
+      Handler: lambda_function.handler
+      MemorySize: 1024
+      Timeout: 300
+      Layers:
+        - !Ref PandasPyarrowLayer
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+          GLUE_DATABASE: gold
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref S3Bucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - glue:GetDatabase
+                - glue:GetTable
+                - glue:CreateTable
+                - glue:UpdateTable
+                - glue:GetPartition
+                - glue:CreatePartition
+                - glue:BatchCreatePartition
+                - glue:GetPartitions
+              Resource: "*"
