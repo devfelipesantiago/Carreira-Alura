@@ -7,6 +7,7 @@ import json
 import operator
 import re
 from pathlib import Path
+
 _CONFIG_PATH = Path(__file__).with_name("table_config.json")
 
 
@@ -14,6 +15,7 @@ def _load_table_config() -> dict:
     "Carrega a configuração declarativa única usada pelo Lambda Silver."
     with _CONFIG_PATH.open(encoding="utf-8") as config_file:
         return json.load(config_file)
+
 
 _RAW_CONFIG = _load_table_config()
 TABLE_CONFIG = _RAW_CONFIG["table_configs"]

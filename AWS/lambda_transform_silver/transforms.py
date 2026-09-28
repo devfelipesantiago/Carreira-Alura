@@ -107,7 +107,9 @@ def apply_date_conversions(
                 df.loc[remaining_mask, col], format=fmt, errors="coerce"
             )
             success = converted.notna()
-            parsed.loc[remaining_mask[remaining_mask].index[success]] = converted[success].values
+            parsed.loc[remaining_mask[remaining_mask].index[success]] = converted[
+                success
+            ].values
             remaining_mask.loc[remaining_mask[remaining_mask].index[success]] = False
 
         fail_count = int(remaining_mask.sum())
@@ -190,7 +192,9 @@ def apply_validity_filters(
 
         op_fn = _OPS.get(op_str)
         if op_fn is None:
-            logger.warning(f"[{table}] validity_filter: operador '{op_str}' desconhecido - ignorado")
+            logger.warning(
+                f"[{table}] validity_filter: operador '{op_str}' desconhecido - ignorado"
+            )
             continue
 
         try:
@@ -204,7 +208,9 @@ def apply_validity_filters(
                 df = df[~invalid_mask].reset_index(drop=True)
                 total_removed += count
         except Exception as exc:
-            logger.error(f"[{table}] validity_filter: erro ao aplicar filtro '{col} {op_str} {val}': {exc}")
+            logger.error(
+                f"[{table}] validity_filter: erro ao aplicar filtro '{col} {op_str} {val}': {exc}"
+            )
 
     return df, total_removed
 
@@ -399,7 +405,14 @@ def apply_schema_casts_from_bronze(
                 converted = pd.to_numeric(original, errors="coerce").astype("Float64")
             elif glue_type == "boolean":
                 converted = original.map(
-                    {"true": True, "false": False, "1": True, "0": False, True: True, False: False}
+                    {
+                        "true": True,
+                        "false": False,
+                        "1": True,
+                        "0": False,
+                        True: True,
+                        False: False,
+                    }
                 )
             else:
                 converted = original.astype(str).where(original_not_null, pd.NA)
@@ -407,14 +420,18 @@ def apply_schema_casts_from_bronze(
             fail_count = int((original_not_null & converted.isna()).sum())
             cast_failures[col] = fail_count
             if fail_count:
-                logger.warning(f"[{table}] cast '{col}' ({glue_type}): {fail_count} falha(s)")
+                logger.warning(
+                    f"[{table}] cast '{col}' ({glue_type}): {fail_count} falha(s)"
+                )
             df[col] = converted
 
         except Exception as exc:
             # Falha de conversão não pode derrubar o lote nem propagar o valor
             # original: todo o campo fica nulo e a quantidade é registrada.
             fail_count = int(original_not_null.sum())
-            logger.error(f"[{table}] cast '{col}' ({glue_type}): erro inesperado: {exc}")
+            logger.error(
+                f"[{table}] cast '{col}' ({glue_type}): erro inesperado: {exc}"
+            )
             cast_failures[col] = fail_count
             df[col] = pd.Series(pd.NA, index=df.index, dtype="object")
 
