@@ -1,0 +1,51 @@
+#################### Modelagem da Gold ####################
+
+Você é um engenheiro de dados sênior. Proponha a modelagem Gold do Alumart Datalake
+para responder às seguintes perguntas de negócio:
+
+1. Qual o tamanho do negócio?
+2. Como a receita evoluiu ao longo do tempo?
+3. Qual canal de venda está crescendo ou caindo?
+4. Quais produtos geram mais receita?
+5. Quem são os clientes que mais geram receita?
+6. Há sazonalidade? Quais meses e trimestres vendem mais?
+7. Fins de semana vendem mais que dias úteis?
+
+## Passo 1 - Reconhecimento dos dados
+
+Use o MCP Server para inspecionar as tabelas da camada Silver antes de propor qualquer coisa:
+- Liste as colunas, tipos e exemplos de valores de cada tabela abaixo
+- Valide cardinalidade dos campos de chave e valores distintos de cd_canal e cd_status
+
+Tabelas para consultar:
+- silver.clientes
+- silver.produtos
+- silver.pedidos -> cd_status, cd_canal, dt_ov, dt_pgto
+- silver.items_pedido -> qt_item, vl_unit, vl_desc_item, vl_tot_item, fl_calc_inconsistente
+- silver.pagamentos
+
+## Passo 2 - Modelagem Gold (Star Schema)
+
+Com base no que você encontrou, documente as tabelas abaixo.
+Para cada tabela: nome da coluna, tipo, descrição, origem no Silver, regra de negócio.
+
+### Fato
+
+- **fact_sales** - granularidade: 1 linha por item de pedido pago
+- Filtro base: silver.pedidos.cd_status = 'PAGO'
+- Colunas calculadas a gerar:
+  | Coluna | Cálculo |
+  |---|---|
+  | vl_receita_liquida | vl_tot_item - vl_desc_item |
+  | vl_frete_rateado | vl_frete x (vl_tot_item / vl_tot_ov) - rateio proporcional por item |
+  | fl_calc_inconsistente | herdada do DQ Silver (flag dos ~15% com cálculo errado) |
+- **fact_inventory** - granularidade: 1 linha por produto por data (snapshot diário)
+- Proposta livre: defina as colunas que fazem sentido com base no Silver
+
+## Passo 3 - Saída esperada
+
+Gere o arquivo 'gold_model.md' com:
+1. Diagrama de linhagem (Silver -> Gold, texto simples)
+2. Definição completa de cada tabela (colunas, tipos, origens, regras)
+3. Queries Athena (CTAS, Presto SQL) para criar cada tabela Gold
+4. Para cada pergunta de negócio (1-7): qual tabela Gold responde e um exemplo de query
