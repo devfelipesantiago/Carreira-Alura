@@ -24,6 +24,7 @@ A inspeção detalhada das tabelas Silver resultou no seguinte mapeamento de esq
   - `st_ativo` (`BIGINT`): Status cadastral (`1` = Ativo, `0` = Inativo).
 
 ### 1.2 `silver.produtos` (Origem: `erp_it_prod`)
+
 - **Granularidade**: 1 registro por produto/SKU do catálogo.
 - **Chave Primária**: `cod_prod` (Cardinalidade: ~30 produtos).
 - **Colunas e Tipos**:
@@ -39,6 +40,7 @@ A inspeção detalhada das tabelas Silver resultou no seguinte mapeamento de esq
   - `st_ativo` (`BIGINT`): Indicador se o produto está ativo para venda (`1` = Sim, `0` = Não).
 
 ### 1.3 `silver.pedidos` (Origem: `erp_ov_cabe`)
+
 - **Granularidade**: 1 registro por ordem de venda (cabeçalho).
 - **Chave Primária**: `nr_ov` (Cardinalidade: ~500 pedidos).
 - **Particionamento Silver**: `year` (`BIGINT`), `month` (`BIGINT`) baseados em `dt_ov`.
@@ -67,6 +69,7 @@ A inspeção detalhada das tabelas Silver resultou no seguinte mapeamento de esq
   - `fl_sem_pgto` (`BOOLEAN`): Flag cross-table gerada na Silver indicando pedidos com status `PAGO` sem registro correspondente em pagamentos.
 
 ### 1.4 `silver.itens_pedido` (Origem: `erp_ov_item`)
+
 - **Granularidade**: 1 registro por item da ordem de venda.
 - **Chave Primária**: Composta (`nr_ov`, `nr_seq`).
 - **Colunas e Tipos**:
@@ -82,6 +85,7 @@ A inspeção detalhada das tabelas Silver resultou no seguinte mapeamento de esq
   - `fl_qt_negativa` (`BOOLEAN`): Flag de DQ indicando se `qt_item < 0`.
 
 ### 1.5 `silver.pagamentos` (Origem: `erp_fn_pgto`)
+
 - **Granularidade**: 1 registro por parcela de pagamento liquidada ou processada.
 - **Chave Primária**: `id_pgto` (Cardinalidade: ~800 parcelas).
 - **Particionamento Silver**: `year` (`BIGINT`), `month` (`BIGINT`) baseados em `dt_pgto`.
@@ -101,14 +105,14 @@ A inspeção detalhada das tabelas Silver resultou no seguinte mapeamento de esq
 
 A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensional de Ralph Kimball, composta por **duas tabelas fato** e **quatro tabelas dimensão conformadas**, permitindo responder a todas as perguntas de negócio com alto desempenho e simplicidade analítica.
 
-```
+```shell
                   +-------------------+
                   |   dim_customers   |
                   +-------------------+
                             |
                             | (1:N)
 +---------------+           v           +-------------------+
-|   dim_date    | ---> fact_sales <--- |   dim_products    |
+|   dim_date    | ---> fact_sales <--- |   dim_products     |
 +---------------+           ^           +-------------------+
        |                    |                     |
        | (1:N)              | (1:N)               | (1:N)
@@ -121,6 +125,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.1 Tabela Fato: `gold.fact_sales`
+
 - **Conceito de Negócio**: Registra cada linha de item faturado/pago com detalhamento de receita, custos e rateios de frete.
 - **Granularidade**: **1 linha por item de pedido efetivamente pago** (`silver.pedidos.cd_status = 'PAGO'`).
 - **Particionamento**: `order_year_month` (`VARCHAR`, ex: `'2024-06'`).
@@ -152,6 +157,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.2 Tabela Fato: `gold.fact_inventory`
+
 - **Conceito de Negócio**: Tabela de snapshot periódico/diário da posição de estoque por produto, monitorando nível de abastecimento, capital imobilizado a custo e potencial de faturamento.
 - **Granularidade**: **1 linha por produto por data de snapshot**.
 - **Particionamento**: `snapshot_year_month` (`VARCHAR`, ex: `'2024-06'`).
@@ -174,6 +180,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.3 Tabela Dimensão: `gold.dim_date`
+
 - **Conceito de Negócio**: Calendário analítico com granularidade diária, enriquecido com atributos temporais essenciais para análises de sazonalidade, trimestres, meses e diferenciação entre dias úteis e finais de semana.
 - **Granularidade**: **1 linha por dia civil** (cobre o período histórico de 2022 a 2026).
 
@@ -198,6 +205,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.4 Tabela Dimensão: `gold.dim_customers`
+
 - **Conceito de Negócio**: Dimensão conformada de clientes com dados de perfil, localização e governança cadastral.
 - **Granularidade**: 1 registro por cliente (`customer_key`).
 
@@ -217,6 +225,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.5 Tabela Dimensão: `gold.dim_products`
+
 - **Conceito de Negócio**: Dimensão de produtos e hierarquia de categorias de catálogo.
 - **Granularidade**: 1 registro por produto (`product_key`).
 
@@ -236,6 +245,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 ---
 
 ### 2.6 Tabela Dimensão: `gold.dim_channels`
+
 - **Conceito de Negócio**: Dimensão conformada de canais de aquisição e venda.
 - **Granularidade**: 1 registro por canal de venda (`channel_key`).
 
@@ -249,7 +259,7 @@ A camada Gold foi estruturada segundo as melhores práticas de modelagem dimensi
 
 ## 3. Passo 3 — Diagrama de Linhagem de Dados (Silver -> Gold)
 
-```
+```shell
 ========================================================================================================
 CAMADA SILVER (S3 Parquet / Glue Metastore)                 CAMADA GOLD (Star Schema / Athena)
 ========================================================================================================
@@ -295,6 +305,7 @@ As consultas abaixo utilizam a sintaxe do **Presto SQL / Trino** suportada pelo 
 > **Nota**: Substitua `${S3_BUCKET}` pelo nome real do bucket S3 do projeto (ex: `alumart-datalake-oscar-576355729000-us-east-2-an`).
 
 ### 4.1 Criação do Database Gold no AWS Glue / Athena
+
 ```sql
 CREATE DATABASE IF NOT EXISTS gold
 COMMENT 'Camada Gold analítica em modelo dimensional Star Schema para a Lumarte';
@@ -303,6 +314,7 @@ COMMENT 'Camada Gold analítica em modelo dimensional Star Schema para a Lumarte
 ---
 
 ### 4.2 Criação da `gold.dim_date`
+
 ```sql
 CREATE TABLE gold.dim_date
 WITH (
@@ -369,6 +381,7 @@ FROM expanded_dates;
 ---
 
 ### 4.3 Criação da `gold.dim_customers`
+
 ```sql
 CREATE TABLE gold.dim_customers
 WITH (
@@ -400,6 +413,7 @@ FROM silver.clientes;
 ---
 
 ### 4.4 Criação da `gold.dim_products`
+
 ```sql
 CREATE TABLE gold.dim_products
 WITH (
@@ -430,6 +444,7 @@ FROM silver.produtos;
 ---
 
 ### 4.5 Criação da `gold.dim_channels`
+
 ```sql
 CREATE TABLE gold.dim_channels
 WITH (
@@ -464,6 +479,7 @@ WHERE cd_canal IS NOT NULL;
 ---
 
 ### 4.6 Criação da `gold.fact_sales`
+
 ```sql
 CREATE TABLE gold.fact_sales
 WITH (
@@ -524,6 +540,7 @@ WHERE p.cd_status = 'PAGO';
 ---
 
 ### 4.7 Criação da `gold.fact_inventory`
+
 ```sql
 CREATE TABLE gold.fact_inventory
 WITH (
@@ -564,6 +581,7 @@ Todas as consultas abaixo foram construídas sobre as tabelas da camada **Gold**
 ---
 
 ### Pergunta 1: Qual o tamanho do negócio?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales`, `gold.dim_customers`, `gold.dim_products`.
 - **Métricas Respondidas**: Receita Bruta Total, Receita Líquida Total, Volume de Itens Faturados, Pedidos Pagos Únicos, Ticket Médio por Pedido, Base de Clientes Ativos Compradores e Lucro Bruto Total.
 
@@ -586,6 +604,7 @@ FROM gold.fact_sales f;
 ---
 
 ### Pergunta 2: Como a receita evoluiu ao longo do tempo?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_date`.
 - **Métricas Respondidas**: Evolução temporal mensal (Mês a Mês - MoM) da receita líquida, volume de pedidos, ticket médio e taxa de crescimento percentual em relação ao mês anterior via window function (`LAG`).
 
@@ -630,6 +649,7 @@ ORDER BY year_month;
 ---
 
 ### Pergunta 3: Qual canal de venda está crescendo ou caindo?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_channels` JOIN `gold.dim_date`.
 - **Métricas Respondidas**: Faturamento mensal por canal, participação percentual (Market Share do canal) e variação percentual de faturamento Mês a Mês para identificar tendências de expansão ou retração.
 
@@ -674,6 +694,7 @@ ORDER BY channel_name, year_month;
 ---
 
 ### Pergunta 4: Quais produtos geram mais receita?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_products`.
 - **Métricas Respondidas**: Ranking (Curva ABC) dos produtos por faturamento, quantidade comercializada, ticket médio unitário, margem de lucro bruto acumulada e percentual representativo sobre a receita total da empresa.
 
@@ -706,6 +727,7 @@ ORDER BY receita_liquida_total DESC;
 ---
 
 ### Pergunta 5: Quem são os clientes que mais geram receita?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_customers`.
 - **Métricas Respondidas**: Top clientes por LTV (Lifetime Value / Faturamento Líquido Acumulado), frequência de compras (total de pedidos), total de itens adquiridos e ticket médio por pedido.
 
@@ -739,10 +761,12 @@ LIMIT 50;
 ---
 
 ### Pergunta 6: Há sazonalidade? Quais meses e trimestres vendem mais?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_date`.
 - **Métricas Respondidas**: Agregação sazonal consolidada por Trimestre (`quarter_number`) e por Mês do Ano (`month_number`), revelando padrões recorrentes e períodos de pico de vendas (ex: Black Friday em novembro / Natal em dezembro).
 
 #### 6.1 Análise por Trimestre (Sazonalidade Trimestral)
+
 ```sql
 SELECT
     d.quarter_number,
@@ -763,6 +787,7 @@ ORDER BY d.quarter_number;
 ```
 
 #### 6.2 Análise por Mês do Ano (Padrão Sazonal Mensal)
+
 ```sql
 SELECT
     d.month_number,
@@ -787,6 +812,7 @@ ORDER BY d.month_number;
 ---
 
 ### Pergunta 7: Fins de semana vendem mais que dias úteis?
+
 - **Tabelas Gold Utilizadas**: `gold.fact_sales` JOIN `gold.dim_date`.
 - **Métricas Respondidas**: Comparativo rigoroso entre Dias Úteis (`is_weekend = FALSE`, Segunda a Sexta) e Finais de Semana (`is_weekend = TRUE`, Sábado e Domingo), calculando faturamento total, total de dias ocorridos no calendário e a **Receita Média por Dia Real**, eliminando a distorção da proporção de 5 dias úteis para 2 dias de fim de semana.
 
@@ -832,6 +858,7 @@ ORDER BY is_weekend DESC;
 ```
 
 #### 7.1 Detalhamento por Dia da Semana (Segunda a Domingo)
+
 ```sql
 SELECT
     d.day_of_week,
