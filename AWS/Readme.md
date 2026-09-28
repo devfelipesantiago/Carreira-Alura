@@ -889,3 +889,172 @@ A modelagem resulta em um esquema estrela:
 - DIM_Canal
 
 Um Fato Inventário separado é criado para analisar movimentos de produtos ao longo do tempo, utilizando o conceito de snapshots diários para análise histórica.
+
+## Respondendo às Perguntas de Negócio
+
+Objetivo da Análise Entender como o modelo de dados construído responde às perguntas de negócio, analisando os dados com base nas questões mapeadas.
+
+### Introdução às Views para Perguntas de Negócio
+
+> Criação de views (visões) para facilitar a consulta de dados agrupados, sem a necessidade de criar novas tabelas de fatos. As views são baseadas nos dados de `fat.sales` com agrupamentos específicos.
+
+- **Criação da View de Desempenho por Produto Materialização** de uma visão de desempenho de produto na camada Gold. Esta view une `fat.sales` com as dimensões de produto e data, agregando indicadores por produto e canal.
+
+Exemplo de sintaxe:
+
+```sql
+CREATE OR REPLACE VIEW gold.fact_product_performance AS
+SELECT
+    d.year,
+    d.month,
+    p.product_key,
+    p.ds_prod,
+    p.cd_categ,
+    p.ds_categ,
+    COUNT(DISTINCT s.nr_ov)      AS qt_pedidos,
+    SUM(s.qt_item)               AS qt_itens_vendidos,
+    SUM(s.vl_tot_item)           AS vl_receita_bruta,
+    SUM(s.vl_desc_item)          AS vl_desconto_total,
+    SUM(s.vl_receita_liquida)    AS vl_receita_liquida,
+    SUM(s.vl_frete_rateado)      AS vl_frete_rateado,
+    NULLIF(COUNT(DISTINCT s.nr_ov), 0) AS ticket_medio_item,
+    SUM(s.vl_receita_liquida)
+    - SUM(p.vl_custo * s.qt_item) AS margem_bruta
+FROM gold.fact_sales s
+JOIN gold.dim_product p ON s.product_key = p.product_key
+JOIN gold.dim_date d ON s.date_key = d.date_key
+GROUP BY d.year, d.month,
+    p.product_key, p.product_key, p.ds_prod,
+    p.cd_categ, p.ds_categ;
+```
+
+#### Convenção de Nomenclatura para Views
+
+> Boa prática de prefixar views com vw (ex: vw_fact_product_performance) para facilitar a identificação.
+---
+
+#### Criação da View de Desempenho por Canal
+
+- **Criação de views para facilitar a análise de desempenho por canal**, unindo `dim.channel`, `dim.date` e `fat.sales`, e agrupando por data e canal.
+
+Exemplo de sintaxe:
+
+```sql
+CREATE OR REPLACE VIEW gold.vw_fact_channel_performance AS
+SELECT
+    d.year,
+    d.month,
+    c.cd_canal,
+    c.ds_canal,
+    COUNT(DISTINCT s.nr_ov)          AS qt_pedidos,
+    SUM(s.qt_item)                   AS qt_itens_vendidos,
+    COUNT(DISTINCT s.customer_key)   AS qt_clientes_unicos,
+    SUM(s.vl_tot_item)               AS vl_receita_bruta,
+    SUM(s.vl_desc_item)              AS vl_desconto_total,
+    SUM(s.vl_receita_liquida)        AS vl_receita_liquida,
+    SUM(s.vl_frete_rateado)          AS vl_frete_rateado,
+    SUM(s.vl_receita_liquida) / NULLIF(COUNT(DISTINCT s.nr_ov), 0) AS ticket_medio_pedido,
+    SUM(s.vl_desc_item) / NULLIF(SUM(s.vl_tot_item), 0)  AS pct_desconto
+FROM gold.fact_sales s
+JOIN gold.dim_canal c ON s.cd_canal = c.cd_canal
+JOIN gold.dim_date d ON s.date_key = d.date_key
+GROUP BY d.year, d.month,
+    c.cd_canal, c.ds_canal;
+Exploração das Views com Queries no Athena Utilização do AWS Athena para consultar as views e responder às perguntas de negócio.
+```
+
+- Exemplo de consulta de desempenho por canal:
+
+```sql
+SELECT
+    year                    AS ano,
+    cd_canal,
+    ds_canal,
+    SUM(qt_pedidos)         AS pedidos,
+    ROUND(SUM(vl_receita_liquida), 2) AS receita
+FROM gold.vw_fact_channel_performance
+GROUP BY year, cd_canal, ds_canal
+ORDER BY ano, receita DESC;
+Resultado: Visão clara de canais como Website e WhatsApp com aumento de pedidos entre 2023 e 2024.
+```
+
+- Consulta de Ranking de Clientes por Receita Identificação dos clientes com maior receita através de consultas SQL.
+
+Exemplo de consulta:
+
+```sql
+SELECT
+    c.nm_clie,
+    c.tp_pessoa,
+    c.cd_uf,
+    COUNT(DISTINCT f.nr_ov)         AS pedidos,
+    ROUND(SUM(f.vl_receita_liquida), 2) AS receita
+FROM gold.fact_sales f
+JOIN gold.dim_customer c ON f.customer_key = c.customer_key
+GROUP BY c.nm_clie, c.tp_pessoa, c.cd_uf
+ORDER BY receita DESC
+LIMIT 10;
+```
+
+**Resultado**: Ranking dos 10 principais clientes por receita, como Daniel Machado (MG) com 12 pedidos e R$ 285 mil em receita.
+
+---
+
+## Análise no Jupyter Notebook Utilização de Jupyter Notebook para análises mais aprofundadas, documentação e visualização de dados.
+
+### Configuração e Conexão
+
+Instalação e uso de bibliotecas como PyAthena para conexão com o AWS Athena.
+
+```py
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from pathlib import Path
+import re
+from pyathena import connect
+
+conn = connect(
+    s3_staging_dir="s3://alumart-datalake-prod/athena-results/",
+    region_name="us-east-2",
+)
+```
+
+- **KPIs Globais da Empresa**: Cálculo e visualização de indicadores-chave de desempenho (KPIs) globais.
+
+```shell
+sql_kpi = """
+SELECT
+    COUNT(DISTINCT f.nr_ov)             AS total_pedidos,
+    COUNT(DISTINCT f.customer_key)      AS total_clientes,
+    COUNT(DISTINCT f.product_key)       AS total_produtos,
+    ROUND(SUM(f.vl_receita_liquida), 2) AS receita_total,
+    ROUND(AVG(f.vl_receita_liquida), 2) AS ticket_medio,
+    ROUND(SUM(f.vl_receita_liquida)
+        / COUNT(DISTINCT f.nr_ov), 2)   AS receita_por_pedido,
+    MIN(d.full_date)                    AS primeira_venda,
+    MAX(d.full_date)                    AS ultima_venda
+FROM gold.fact_sales f
+JOIN gold.dim_date d ON f.date_key = d.date_key
+"""
+```
+
+- **Resultado**: Cards com big numbers como Receita Total (R$ 4 milhões), Total de Pedidos (368), Clientes Únicos (50), etc.
+- Evolução da Receita e Variação por Canal: Análise da evolução da receita ao longo do tempo e comparação do desempenho dos canais de venda.
+
+```shell
+sql_fat = """
+SELECT
+    d.year AS ano,
+    d.month AS mes,
+    ROUND(SUM(f.vl_receita_liquida), 2) AS receita
+FROM gold.fact_sales f
+JOIN gold.dim_date d ON f.date_key = d.date_key
+GROUP BY d.year, d.month
+ORDER BY ano, mes
+"""
+```
+
+- **Resultado**: Gráficos mostrando picos e quedas na receita, e que todos os canais de venda aumentaram entre 2023 e 2024, com Mobile apresentando a maior variação positiva.
+- **Performance por Produto e Clientes**: Identificação dos produtos e clientes que mais geram receita.
+- **Resultado**: Top 15 produtos por receita e quantidade vendida (ex: Galaxy S24 Ultra liderando em receita, Brastemp em quantidade). Tabela com top 1
