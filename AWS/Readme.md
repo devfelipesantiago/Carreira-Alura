@@ -1058,3 +1058,97 @@ ORDER BY ano, mes
 - **Resultado**: Gráficos mostrando picos e quedas na receita, e que todos os canais de venda aumentaram entre 2023 e 2024, com Mobile apresentando a maior variação positiva.
 - **Performance por Produto e Clientes**: Identificação dos produtos e clientes que mais geram receita.
 - **Resultado**: Top 15 produtos por receita e quantidade vendida (ex: Galaxy S24 Ultra liderando em receita, Brastemp em quantidade). Tabela com top 1
+
+---
+
+## Orquestração de Pipeline: Por que e Como
+
+### 1. Necessidade da Orquestração
+
+- Problema sem orquestração: Execução manual de cada etapa do pipeline no console da AWS (ex: Lambda, Glue Crawler, Athena).
+- Consequências: Processo complexo, trabalhoso, propenso a erros, inviável para atualizações automáticas e frequentes.
+- Benefícios da orquestração:
+  - Automação das etapas.
+  - Estabelecimento de dependências lógicas entre tarefas.
+  - Criação de um fluxo lógico de execução.
+  - Monitoramento de falhas e erros.
+  - Observabilidade centralizada e visual.
+
+### 2. Soluções de Orquestração na AWS
+
+- Opções: AWS Step Functions, Apache Airflow (em EC2), entre outros.
+
+### 3. AWS Step Functions
+
+- O que é: Serviço da AWS para integrar praticamente todos os serviços do ecossistema.
+- Funcionamento: Máquina de estados que define um fluxo lógico de execução.
+- Capacidades:
+  - Controle de execuções síncronas e assíncronas.
+  - Criação de fluxos de decisão.
+  - Espera pela conclusão de um estado para iniciar o próximo.
+  - Interface visual para acompanhamento passo a passo.
+  - Monitoramento de tempos e geração de logs.
+- Custo: Nível gratuito generoso (cerca de um milhão de transições de estado gratuitas, verificar AWS Free Tier).
+- Construção do fluxo:
+  - Pode ser definido por um arquivo JSON.
+  - Pode ser construído via interface visual (abordagem do curso para facilitar o primeiro contato).
+  - O código JSON é gerado mesmo ao usar a interface visual, permitindo versionamento e CI/CD.
+
+### 4. Objetivos da Orquestração
+
+Garantir automação, execução estável e observabilidade, pilares fundamentais para o ambiente de dados.
+
+---
+
+## Amazon EventBridge
+
+1. **Acessar o EventBridge Scheduler**: No console da AWS, você busca por "`EventBridge`" e, dentro dele, seleciona a opção "`Scheduler`".
+2. **Criar um Agendamento (Schedule)**: Clique em "**Create schedule**" para iniciar a configuração.
+3. **Definir o Nome e a Recorrência**: Dê um nome ao seu agendamento (por exemplo, "meia-noite") e escolha se ele será de execução única ou recorrente. Para agendamentos recorrentes, você pode definir a frequência usando uma expressão CRON ou um intervalo de tempo (como "rate(24 hours)" para executar a cada 24 horas).
+4. **Configurar o Destino (Target):** Aqui você especifica qual serviço da AWS será acionado pelo agendamento. Na aula, foi selecionado o Step Functions e, em seguida, a máquina de estados ingestion.
+5. **Revisar e Criar**: Após configurar os detalhes, você revisa as informações e cria o agendamento. O EventBridge criará uma função IAM para permitir que ele invoque o serviço de destino.
+
+---
+
+## CloudWatch
+
+### O que é o CloudWatch?
+Serviço da AWS para gestão centralizada de logs, métricas e alarmes. Integra eventos de log de serviços AWS e fontes personalizadas.
+
+### Funcionalidades Principais
+
+- **Dashboards**: Painéis personalizáveis para visualizar métricas e gráficos.
+- **Alarmes**: Observam métricas, aplicam regras e disparam alertas/ações (ex: notificação por e-mail via SNS).
+- **AI Operations**: Recurso de IA para investigar problemas e antecipar análises.
+- **GNI Observability**: Identifica uso e observabilidade de IA generativa.
+- **Log Management**: Central para consultar e analisar logs.
+
+### Acessando o CloudWatch
+
+#### Buscar por cloudwatch na barra de busca da AWS
+
+- **Explorando Logs**
+  - **Grupos de Logs**: Organizados por serviço (ex: Lambda, DMS). Nem todos os serviços publicam logs automaticamente; alguns exigem habilitação.
+  - **Visualização de Logs**: Ao abrir um grupo de logs (ex: extract gold de uma função Lambda), é possível ver execuções e detalhes dos logs gerados.
+  - **Filtragem de Logs**:
+    - Por serviço: lambda
+    - Por nível de log: INFO ou ERROR
+  - **Depuração**: Grupos de logs são essenciais para depurar funções Lambda e identificar problemas.
+
+- **Explorando Métricas**
+  - **Métricas Nativas**: Serviços AWS publicam métricas automaticamente no CloudWatch.
+  - **Acessando Métricas**: No menu lateral, selecionar "All metrics".
+  - **Organização:** Métricas são categorizadas por serviço (Events, Firehose, Glue, Lambda, RDS, Step Functions/States, etc.) e por uso (Usage).
+  - **Análise de Métricas**:
+    - **Exemplo:** Analisar erros (Errors) e invocações (Invocations) de uma função Lambda (ex: extract bronze).
+    - Ajustar visualização (Sum para soma, janela de tempo: minuto, 5 minutos, dia, semana).
+    - Comparar métricas para entender a relação (ex: erros por invocação).
+
+- **Construindo Dashboards**
+  - **Criação:** Nomear o dashboard (ex: "Lambda Lake").
+  - **Adicionando Widgets**: Incluir métricas como Invocations, Errors e Duration de funções Lambda.
+  - **Filtragem e Agregação**:
+    - **Filtrar por nome de função**: FunctionName = * (para todas as funções).
+    - **Aplicar agregação** (soma) ou split (separação) por Function Name para gráficos individuais por função.
+    - **Edição:** Personalizar título, subtítulo e layout.
+    - **Utilização**: Facilita a visualização e análise rápida de informações importantes do ambiente.
