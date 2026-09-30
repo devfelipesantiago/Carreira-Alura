@@ -1152,3 +1152,41 @@ Serviço da AWS para gestão centralizada de logs, métricas e alarmes. Integra 
     - **Aplicar agregação** (soma) ou split (separação) por Function Name para gráficos individuais por função.
     - **Edição:** Personalizar título, subtítulo e layout.
     - **Utilização**: Facilita a visualização e análise rápida de informações importantes do ambiente.
+
+---
+
+## Explicação do projeto
+
+### A Solução Proposta (Arquitetura):
+
+- Apresente a arquitetura de forma clara, talvez com um diagrama, como o instrutor sugeriu.
+- Descreva os principais componentes e suas funções:
+- **Origem dos Dados**: "Começamos extraindo dados de um banco de dados relacional, o Amazon RDS."
+- **Extração e Processamento**: "Utilizamos funções AWS Lambda para extrair esses dados e processá-los, transformando-os com a biblioteca pandas."
+- **Armazenamento (Data Lake)**: "Os dados processados foram armazenados em um Data Lake, usando o Amazon S3, em um formato eficiente como o Parquet."
+- **Consumo e Análise**: "Para que os usuários pudessem consultar e analisar esses dados, configuramos o Amazon Athena."
+- **Gestão de Metadados**: "Para organizar e catalogar nossos dados, usamos o AWS Glue Data Catalog."
+- **Monitoramento**: "Implementamos monitoramento com Amazon CloudWatch e Amazon SNS para nos alertar sobre quaisquer problemas ou erros no pipeline."
+
+### Benefícios e Justificativas (Adaptado ao Público):
+
+#### Para um público de negócios
+
+- "Esta solução é eficaz, tem um baixo custo operacional e funciona de forma autônoma."
+- "Ela garante a confiança e a qualidade dos dados, entregando capacidade analítica ponta a ponta, inclusive para futuras aplicações de IA generativa."
+
+#### Para um público técnico
+
+- "Escolhemos serviços como o AWS Lambda pela sua simplicidade e baixo custo, ideal para o volume de dados inicial que tínhamos."
+- "Esta é uma primeira versão do ambiente, pensada para evoluir e escalar conforme a necessidade, seguindo o princípio 'pense grande, comece pequeno' da AWS."
+- "O ambiente contém tudo o que é necessário para um Data Lake de qualidade: armazenamento eficiente, formato de arquivo otimizado, processamento entre camadas, observabilidade e gestão de metadados."
+
+### Demonstração e Validação
+
+- Mencione como você pode demonstrar o funcionamento: "Podemos mostrar os dados e as análises usando ferramentas como o Jupyter Notebook, criando uma narrativa clara sobre os insights obtidos."
+- Enfatize a qualidade: "Tudo o que fizemos foi testado e validado, garantindo um trabalho de alta qualidade."
+
+### Conclusão (e Desprovisionamento, se relevante)
+
+- "Com este projeto, conseguimos construir um pipeline de dados completo e funcional."
+- Se for relevante para a sua explicação, você pode mencionar que, após a validação, todos os recursos foram desprovisionados para evitar custos desnecessários.
