@@ -17,20 +17,22 @@ def http_trigger_ecommerce_logs(req: func.HttpRequest) -> func.HttpResponse:
     try:
         body = req.get_json()
         folder_path = body.get("folderPath")  # ex: 2026/05/20
-        file_name = body.get("fileName")       # ex: arquivo.json
+        file_name = body.get("fileName")  # ex: arquivo.json
 
         if not folder_path or not file_name:
             return func.HttpResponse(
                 json.dumps({"error": "folderPath e fileName são obrigatórios"}),
                 status_code=400,
-                mimetype="application/json"
+                mimetype="application/json",
             )
 
         blob_path = f"bronze/{folder_path}/{file_name}"
         logging.info(f"HTTP trigger chamado para: {blob_path}")
 
         client = BlobServiceClient.from_connection_string(STORAGE_CONN)
-        blob = client.get_blob_client(container="bronze", blob=f"{folder_path}/{file_name}")
+        blob = client.get_blob_client(
+            container="bronze", blob=f"{folder_path}/{file_name}"
+        )
         content = blob.download_blob().readall().decode("utf-8")
         records = json.loads(content)
 
@@ -40,22 +42,22 @@ def http_trigger_ecommerce_logs(req: func.HttpRequest) -> func.HttpResponse:
         save_parquet(df, silver_path)
 
         return func.HttpResponse(
-            json.dumps({
-                "status": "sucesso",
-                "arquivo": blob_path,
-                "silver_path": silver_path,
-                "total_registros": len(df)
-            }),
+            json.dumps(
+                {
+                    "status": "sucesso",
+                    "arquivo": blob_path,
+                    "silver_path": silver_path,
+                    "total_registros": len(df),
+                }
+            ),
             status_code=200,
-            mimetype="application/json"
+            mimetype="application/json",
         )
 
     except Exception as e:
         logging.error(f"Erro ao processar: {str(e)}")
         return func.HttpResponse(
-            json.dumps({"error": str(e)}),
-            status_code=500,
-            mimetype="application/json"
+            json.dumps({"error": str(e)}), status_code=500, mimetype="application/json"
         )
 
 
@@ -93,8 +95,5 @@ def save_parquet(df: pd.DataFrame, silver_path: str) -> None:
     df.to_parquet(buffer, index=False, engine="pyarrow")
     buffer.seek(0)
     client = BlobServiceClient.from_connection_string(STORAGE_CONN)
-    blob = client.get_blob_client(
-        container=SILVER_CONTAINER,
-        blob=silver_path
-    )
+    blob = client.get_blob_client(container=SILVER_CONTAINER, blob=silver_path)
     blob.upload_blob(buffer, overwrite=True)
