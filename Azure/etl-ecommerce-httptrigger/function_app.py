@@ -8,7 +8,7 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
-STORAGE_CONN = os.environ.get("AzureWebJobsStorage")
+STORAGE_CONN = os.environ.get("stpipelinedatalake0926_STORAGE")
 SILVER_CONTAINER = "silver"
 
 
