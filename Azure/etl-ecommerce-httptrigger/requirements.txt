@@ -5,3 +5,6 @@ azure-functions
 pandas
 io
 json
+pandas
+pyarrow
+azure-storage-blob
