@@ -21,7 +21,9 @@ def http_trigger_ecommerce_logs(req: func.HttpRequest) -> func.HttpResponse:
 
         if not folder_path or not file_name:
             return func.HttpResponse(
-                json.dumps({"error": "folderPath e fileName são obrigatórios"}),
+                json.dumps({
+                    "error": "folderPath e fileName são obrigatórios"
+                    }),
                 status_code=400,
                 mimetype="application/json",
             )
