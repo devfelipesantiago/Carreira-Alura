@@ -12,7 +12,9 @@
 
 ## Fundamentos da modelagem multidimensional
 
-- **Modelagem Multidimensional**: É uma técnica criada especificamente para análise de dados em um Data Warehouse, diferente da modelagem relacional tradicional. Ela é orientada a perguntas de negócio e se baseia em dois conceitos principais:
+### **Modelagem Multidimensional**
+
+É uma técnica criada especificamente para análise de dados em um Data Warehouse, diferente da modelagem relacional tradicional. Ela é orientada a perguntas de negócio e se baseia em dois conceitos principais:
 
   - **Indicadores (Fatos)**: O que queremos analisar (métricas, números, valores mensuráveis). Exemplos incluem total de transações, volume movimentado e ticket médio.
 
@@ -26,7 +28,8 @@
     - Inadimplências
     - Créditos aprovados
 
-- **Granularidade**: Um ponto crucial sobre a tabela de fato é a sua granularidade. Quanto mais detalhado for o fato registrado (ou seja, quanto mais granular for a tabela de fato), maior será o volume de dados, mas também maior será o potencial analítico que você terá para explorar esses dados.
+#### Granularidade
+Um ponto crucial sobre a tabela de fato é a sua granularidade. Quanto mais detalhado for o fato registrado (ou seja, quanto mais granular for a tabela de fato), maior será o volume de dados, mas também maior será o potencial analítico que você terá para explorar esses dados.
 
 - As métricas presentes em uma tabela de fato são sempre numéricas e podem ser classificadas como:
 
@@ -36,7 +39,7 @@
 
 - Em resumo, a tabela de fato é onde os números e as ocorrências dos eventos de negócio são armazenados, e ela é o coração da análise no Data Warehouse, pois é através dela que você vai medir "o que aconteceu" sob diversas perspectivas (dimensões).
 
-- **Os modelos de organização de fatos e dimensões**:
+### **Os modelos de organização de fatos e dimensões**:
 
   - **Modelo estrela**: Uma tabela de fato central cercada por tabelas de dimensões desnormalizadas. É bom para performance.
   - **Modelo snowflake**: Cada nível hierárquico da dimensão está em uma tabela isolada. É mais fácil para manutenção das dimensões.
